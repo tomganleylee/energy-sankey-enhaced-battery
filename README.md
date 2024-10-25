@@ -16,6 +16,8 @@ Both are live and automatically updating. The cards try to display a coherent re
 
 The width of the flows represents the amount, and the overall size of everything is automatically scaled so that no one part of the diagram becomes too wide.
 
+The colour of the flows heading to the consumers represents the blend of locally generated vs grid energy.
+
 The diagram dynamically scales to fit the size of the window it is in (mostly).
 
 
