@@ -9,8 +9,6 @@ import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { fireEvent } from "../common/dom/fire_event";
-import "./ha-icon-button";
-import "./ha-svg-icon";
 
 const ALERT_ICONS = {
   info: mdiInformationOutline,

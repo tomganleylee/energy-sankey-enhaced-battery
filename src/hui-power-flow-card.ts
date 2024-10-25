@@ -17,8 +17,15 @@ import type { HomeAssistant } from "./ha/types";
 import { createEntityNotFoundWarning } from "./ha/panels/lovelace/components/hui-warning";
 import type { LovelaceCard } from "./ha/panels/lovelace/types";
 import type { PowerFlowCardConfig } from "./types";
-import "./ha-elec-sankey";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
+import { registerCustomCard } from "./utils/custom-cards";
+
+registerCustomCard({
+  type: "hui-power-flow-card",
+  name: "Sankey Power Flow Card",
+  description: "Card for showing the instantaneous flow of electrical power",
+});
+
 
 @customElement("hui-power-flow-card")
 class HuiPowerFlowCard extends LitElement implements LovelaceCard {

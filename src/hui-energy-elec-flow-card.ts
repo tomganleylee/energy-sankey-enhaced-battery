@@ -23,14 +23,13 @@ import { SubscribeMixin } from "./ha/mixins/subscribe-mixin";
 import { HomeAssistant } from "./ha/types";
 import { LovelaceCard } from "./ha/panels/lovelace/types";
 import { EnergyElecFlowCardConfig } from "./types";
-import "./ha-elec-sankey";
 
 import { registerCustomCard } from "./utils/custom-cards";
 
 registerCustomCard({
   type: "hui-energy-elec-flow-card",
   name: "Sankey Energy Flow Card",
-  description: "Card for showing the flow of electrical energy over at ime period on a sankey chart",
+  description: "Card for showing the flow of electrical energy over a time period on a sankey chart",
 });
 
 

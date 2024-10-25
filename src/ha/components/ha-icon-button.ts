@@ -1,9 +1,7 @@
-import "@material/mwc-icon-button";
 import type { IconButton } from "@material/mwc-icon-button";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import { ifDefined } from "lit/directives/if-defined.js";
-import "./ha-svg-icon";
 
 @customElement("ha-icon-button")
 export class HaIconButton extends LitElement {
