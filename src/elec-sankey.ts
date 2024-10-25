@@ -37,7 +37,7 @@ import { customElement, property } from "lit/decorators.js";
 
 const TERMINATOR_BLOCK_LENGTH = 50;
 const GENERATION_FAN_OUT_HORIZONTAL_GAP = 80;
-const CONSUMERS_FAN_OUT_VERTICAL_GAP = 50;
+const CONSUMERS_FAN_OUT_VERTICAL_GAP = 90;
 const CONSUMER_LABEL_HEIGHT = 50;
 const TARGET_SCALED_TRUNK_WIDTH = 90;
 
@@ -1095,7 +1095,6 @@ export class ElecSankey extends LitElement {
       position: relative;
       direction: ltr;
       display: flex;
-      border: 1px solid var(--divider-color);
     }
     .col1 {
       flex: 1;
