@@ -186,8 +186,6 @@ export class HuiEnergyElecFlowCard
   `;
 }
 
-customElements.define("hui-energy-elec-flow-card", HuiEnergyElecFlowCard);
-
 declare global {
   interface HTMLElementTagNameMap {
     "hui-energy-elec-flow-card": HuiEnergyElecFlowCard;
