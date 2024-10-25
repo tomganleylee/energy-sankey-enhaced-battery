@@ -3,11 +3,29 @@ import { customElement, property } from "lit/decorators.js";
 import { CSSResultArray, TemplateResult, css, html, nothing } from "lit";
 import { mdiArrowLeft, mdiArrowRight } from "@mdi/js";
 import { ElecSankey } from "@davethompson/elec-sankey";
-import { HomeAssistant } from "custom-card-helpers";
-import { formatNumber } from "custom-card-helpers"
+import { HomeAssistant } from "./ha/types";
+import { formatNumber } from "./ha/common/number/format_number";
 
-//import "../ha-icon";
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "./ha/common/dom/fire_event";
+
+
+// Additional items from frontend src/dialogs/more-info/ha-more-info-dialog.ts
+type View = "info" | "history" | "settings" | "related";
+
+export interface MoreInfoDialogParams {
+  entityId: string | null;
+  view?: View;
+  /** @deprecated Use `view` instead */
+  tab?: View;
+}
+
+declare global {
+  // for fire event
+  interface HASSDomEvents {
+    "hass-more-info": MoreInfoDialogParams;
+  }
+}
+// end of additional items from frontend src/dialogs/more-info/ha-more-info-dialog.ts
 
 @customElement("ha-elec-sankey")
 export class HaElecSankey extends ElecSankey {

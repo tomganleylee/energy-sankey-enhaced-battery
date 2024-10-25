@@ -1,6 +1,6 @@
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, property, query } from "lit/decorators";
-import { fireEvent } from "custom-card-helpers";
+import { fireEvent } from "../common/dom/fire_event";
 import "./ha-base-time-input";
 import type { TimeChangedEvent } from "./ha-base-time-input";
 

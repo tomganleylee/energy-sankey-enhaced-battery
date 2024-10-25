@@ -13,10 +13,11 @@ import {
 //   import { DeviceRegistryEntry } from "./data/device_registry";
 import { EntityRegistryDisplayEntry } from "./data/entity_registry";
 //   import { CoreFrontendUserData } from "./data/frontend";
-import { LocalizeFunc } from "custom-card-helpers";
 import { FrontendLocaleData } from "./data/translation";
 import { Themes } from "./data/ws-themes";
 // import { ExternalMessaging } from "./external_app/external_messaging";
+
+export declare type LocalizeFunc = (key: string, ...args: any[]) => string;
 
   declare global {
     /* eslint-disable no-var, no-redeclare */

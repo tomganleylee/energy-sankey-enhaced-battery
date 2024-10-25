@@ -1,4 +1,5 @@
-import { LovelaceCardConfig } from "custom-card-helpers"
+import { LovelaceCardConfig } from "./ha/data/lovelace/config/card";
+
 
 export interface EnergyElecFlowCardConfig extends LovelaceCardConfig {
   type: "energy-elec-flow";
