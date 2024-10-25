@@ -11,8 +11,32 @@ import {
 import { mdiTransmissionTower, mdiHelpRhombus } from "@mdi/js";
 import { customElement, property } from "lit/decorators.js";
 
+/**
+ * Notes on graphical layout:
+ *
+ * The diagram contains elements that are fixed aspect ratio on the left,
+ * and variable aspect ratio on the right. This is because the split of
+ * renewables into two directions doesn't tend to stretch well and still
+ * look good.
+ *
+ * The right side of the diagram shows the rates fanning out to consumers,
+ * and this is much more easy to stretch. Changing the aspec ratio does not
+ * adversely affect the diagram.
+ *
+ * The overall SVG is designed to fit within a bounding box, of 500px less
+ * two 16px margins. Some experimentation with the value of
+ * SVG_LHS_VISIBLE_WIDTH is needed to get the best fit.
+ *
+ * With the SVG_LHS_VISIBLE_WIDTH set, a scaling factor is automatically
+ * calculated, and all other graphical elements are scaled by this factor.
+ *
+ * All other items in the diagram are an arbitrary scale, which is
+ * multiplied by the scaling factor.
+ *
+ */
+
 const TERMINATOR_BLOCK_LENGTH = 50;
-const GENERATION_FAN_OUT_HORIZONTAL_GAP = 50;
+const GENERATION_FAN_OUT_HORIZONTAL_GAP = 80;
 const CONSUMERS_FAN_OUT_VERTICAL_GAP = 50;
 const CONSUMER_LABEL_HEIGHT = 50;
 const TARGET_SCALED_TRUNK_WIDTH = 90;
@@ -29,6 +53,8 @@ const FONT_SIZE_PX = 16;
 const ICON_SIZE_PX = 24;
 
 const GEN_ORIGIN_X = 150;
+
+const SVG_LHS_VISIBLE_WIDTH = 110;
 
 export const PAD_ANTIALIAS = 0.5;
 
@@ -995,7 +1021,7 @@ export class ElecSankey extends LitElement {
     );
 
     const svgCanvasWidth = x1;
-    const svgVisibleWidth = 350;
+    const svgVisibleWidth = SVG_LHS_VISIBLE_WIDTH;
     const svgScaleX = svgVisibleWidth / svgCanvasWidth;
 
     const [gridInDiv, gridInFlowSvg] = this.renderGridInFlow(x2, y2, svgScaleX);
@@ -1069,6 +1095,7 @@ export class ElecSankey extends LitElement {
       position: relative;
       direction: ltr;
       display: flex;
+      border: 1px solid var(--divider-color);
     }
     .col1 {
       flex: 1;
