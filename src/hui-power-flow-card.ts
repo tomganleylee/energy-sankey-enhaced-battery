@@ -9,7 +9,7 @@ import {
 } from "lit";
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ElecRoute } from "@davethompson/elec-sankey";
+import { ElecRoute } from "./elec-sankey";
 import { applyThemesOnElement } from "./ha/common/dom/apply_themes_on_element";
 import { computeStateName } from "./ha/common/entity/compute_state_name";
 import { isValidEntityId } from "./ha/common/entity/valid_entity_id";

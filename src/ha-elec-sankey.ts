@@ -2,7 +2,7 @@ import { customElement, property } from "lit/decorators.js";
 
 import { CSSResultArray, TemplateResult, css, html, nothing } from "lit";
 import { mdiArrowLeft, mdiArrowRight } from "@mdi/js";
-import { ElecSankey } from "@davethompson/elec-sankey";
+import { ElecSankey } from "./elec-sankey";
 import { HomeAssistant } from "./ha/types";
 import { formatNumber } from "./ha/common/number/format_number";
 
