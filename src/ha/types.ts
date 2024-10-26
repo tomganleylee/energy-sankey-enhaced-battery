@@ -10,7 +10,7 @@ import {
   } from "home-assistant-js-websocket";
 //   import { LocalizeFunc } from "./common/translations/localize";
 //   import { AreaRegistryEntry } from "./data/area_registry";
-//   import { DeviceRegistryEntry } from "./data/device_registry";
+import { DeviceRegistryEntry } from "./data/device_registry";
 import { EntityRegistryDisplayEntry } from "./data/entity_registry";
 //   import { CoreFrontendUserData } from "./data/frontend";
 import { FrontendLocaleData } from "./data/translation";
@@ -210,7 +210,7 @@ export declare type LocalizeFunc = (key: string, ...args: any[]) => string;
     connected: boolean;
     states: HassEntities;
     entities: { [id: string]: EntityRegistryDisplayEntry };
-    // devices: { [id: string]: DeviceRegistryEntry };
+    devices: { [id: string]: DeviceRegistryEntry };
     // areas: { [id: string]: AreaRegistryEntry };
     services: HassServices;
     config: HassConfig;

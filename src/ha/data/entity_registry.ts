@@ -4,7 +4,7 @@
 // import { computeStateName } from "../common/entity/compute_state_name";
 // import { caseInsensitiveStringCompare } from "../common/string/compare";
 // import { debounce } from "../common/util/debounce";
-// import { HomeAssistant } from "../types";
+import { HomeAssistant } from "../types";
 // import { LightColor } from "./light";
 // import { computeDomain } from "../common/entity/compute_domain";
 
@@ -43,34 +43,34 @@ export interface EntityRegistryDisplayEntry {
 //   entity_categories: Record<number, EntityCategory>;
 // }
 
-// export interface EntityRegistryEntry {
-//   id: string;
-//   entity_id: string;
-//   name: string | null;
-//   icon: string | null;
-//   platform: string;
-//   config_entry_id: string | null;
-//   device_id: string | null;
-//   area_id: string | null;
-//   labels: string[];
-//   disabled_by: "user" | "device" | "integration" | "config_entry" | null;
-//   hidden_by: Exclude<EntityRegistryEntry["disabled_by"], "config_entry">;
-//   entity_category: EntityCategory | null;
-//   has_entity_name: boolean;
-//   original_name?: string;
-//   unique_id: string;
-//   translation_key?: string;
-//   options: EntityRegistryOptions | null;
-//   categories: { [scope: string]: string };
-// }
+export interface EntityRegistryEntry {
+  id: string;
+  entity_id: string;
+  name: string | null;
+  icon: string | null;
+  platform: string;
+  config_entry_id: string | null;
+  device_id: string | null;
+  area_id: string | null;
+  labels: string[];
+  disabled_by: "user" | "device" | "integration" | "config_entry" | null;
+  hidden_by: Exclude<EntityRegistryEntry["disabled_by"], "config_entry">;
+  entity_category: EntityCategory | null;
+  has_entity_name: boolean;
+  original_name?: string;
+  unique_id: string;
+  translation_key?: string;
+  //options: EntityRegistryOptions | null;
+  categories: { [scope: string]: string };
+}
 
-// export interface ExtEntityRegistryEntry extends EntityRegistryEntry {
-//   capabilities: Record<string, unknown>;
-//   original_icon?: string;
-//   device_class?: string;
-//   original_device_class?: string;
-//   aliases: string[];
-// }
+export interface ExtEntityRegistryEntry extends EntityRegistryEntry {
+  capabilities: Record<string, unknown>;
+  original_icon?: string;
+  device_class?: string;
+  original_device_class?: string;
+  aliases: string[];
+}
 
 // export interface UpdateEntityRegistryEntryResult {
 //   entity_entry: ExtEntityRegistryEntry;
@@ -190,14 +190,14 @@ export interface EntityRegistryDisplayEntry {
 //   return entry.original_name ? entry.original_name : entry.entity_id;
 // };
 
-// export const getExtendedEntityRegistryEntry = (
-//   hass: HomeAssistant,
-//   entityId: string
-// ): Promise<ExtEntityRegistryEntry> =>
-//   hass.callWS({
-//     type: "config/entity_registry/get",
-//     entity_id: entityId,
-//   });
+export const getExtendedEntityRegistryEntry = (
+  hass: HomeAssistant,
+  entityId: string
+): Promise<ExtEntityRegistryEntry> =>
+  hass.callWS({
+    type: "config/entity_registry/get",
+    entity_id: entityId,
+  });
 
 // export const getExtendedEntityRegistryEntries = (
 //   hass: HomeAssistant,
