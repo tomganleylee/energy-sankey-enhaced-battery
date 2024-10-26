@@ -392,18 +392,18 @@ export class ElecSankey extends LitElement {
     this._phantomGridInRoute =
       phantomGridIn > 0
         ? {
-            text: "Unknown source",
-            icon: mdiHelpRhombus,
-            rate: phantomGridIn,
-          }
+          text: "Unknown source",
+          icon: mdiHelpRhombus,
+          rate: phantomGridIn,
+        }
         : undefined;
     this._phantomGenerationInRoute =
       phantomGeneration > 0
         ? {
-            text: "Unknown source",
-            icon: mdiHelpRhombus,
-            rate: phantomGeneration,
-          }
+          text: "Unknown source",
+          icon: mdiHelpRhombus,
+          rate: phantomGeneration,
+        }
         : undefined;
     this._untrackedConsumerRoute.rate = untrackedConsumer;
 
@@ -537,11 +537,11 @@ export class ElecSankey extends LitElement {
         </svg>
         <br />
         ${valueBRounded
-          ? html`
+        ? html`
               OUT ${valueBRounded} ${this.unit}<br />
               IN ${valueARounded} ${this.unit}
             `
-          : html` ${_name}<br />${valueARounded} ${this.unit} `}
+        : html` ${_name}<br />${valueARounded} ${this.unit} `}
       </div>
     `;
   }
@@ -616,7 +616,7 @@ export class ElecSankey extends LitElement {
               class="label elecroute-label-horiz"
               style="left: ${midX * svgScaleX -
               (i * LABEL_WIDTH) /
-                2}px; flex-basis: ${LABEL_WIDTH}px; margin: 0 0 0 ${-LABEL_WIDTH /
+              2}px; flex-basis: ${LABEL_WIDTH}px; margin: 0 0 0 ${-LABEL_WIDTH /
               2}px;"
             >
               ${this._generateLabelDiv(id, icon, undefined, rate)}
@@ -632,16 +632,16 @@ export class ElecSankey extends LitElement {
     const generatedFlowPath2 =
       genToConsWidth > 0
         ? renderFlowByCorners(
-            x0 + totalGenWidth,
-            TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
-            x0 + totalGenWidth - genToConsWidth,
-            TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
-            x1,
-            y1,
-            x2,
-            y2,
-            "generation"
-          )
+          x0 + totalGenWidth,
+          TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
+          x0 + totalGenWidth - genToConsWidth,
+          TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
+          x1,
+          y1,
+          x2,
+          y2,
+          "generation"
+        )
         : svg``;
     const svgRet = svg`
     ${svgArray}
@@ -717,12 +717,12 @@ export class ElecSankey extends LitElement {
       top: ${midY * svgScaleX}px; margin: ${-divHeight / 2}px 0 0 0px;"
     >
       ${this._generateLabelDiv(
-        this.gridInRoute.id,
-        mdiTransmissionTower,
-        undefined,
-        rateA,
-        rateB
-      )}
+      this.gridInRoute.id,
+      mdiTransmissionTower,
+      undefined,
+      rateA,
+      rateB
+    )}
     </div>`;
 
     const svgRet = svg`
