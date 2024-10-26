@@ -6,8 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 
 //import "../../../../components/chart/ha-chart-base";
 //import "../../../../components/ha-card";
-import type { ElecRoute } from "@davethompson/elec-sankey";
-import "@davethompson/elec-sankey";
+import type { ElecRoute } from "./elec-sankey";
 import {
   DeviceConsumptionEnergyPreference, /// done
   EnergyData,

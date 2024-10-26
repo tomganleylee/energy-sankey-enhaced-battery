@@ -9,7 +9,7 @@ import {
 } from "lit";
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
-import { ElecRoute } from "@davethompson/elec-sankey";
+import { ElecRoute } from "./elec-sankey";
 import { applyThemesOnElement } from "./ha/common/dom/apply_themes_on_element";
 import { computeStateName } from "./ha/common/entity/compute_state_name";
 import { isValidEntityId } from "./ha/common/entity/valid_entity_id";
@@ -19,6 +19,8 @@ import type { LovelaceCard } from "./ha/panels/lovelace/types";
 import type { PowerFlowCardConfig } from "./types";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
 import { registerCustomCard } from "./utils/custom-cards";
+import { getEnergyPreferences } from "./ha/data/energy";
+import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/data/entity_registry";
 
 registerCustomCard({
   type: "hui-power-flow-card",
@@ -29,7 +31,7 @@ registerCustomCard({
 
 @customElement("hui-power-flow-card")
 class HuiPowerFlowCard extends LitElement implements LovelaceCard {
-  @property({ attribute: false }) public hass?: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: PowerFlowCardConfig;
 
@@ -55,6 +57,146 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
   }
 
+  private static async getExtendedEntityRegistryEntries(_hass: HomeAssistant): Promise<{ [id: string]: ExtEntityRegistryEntry }> {
+    // Get the full list of all extended entity registry entries as a dict.
+
+    // @todo: uses multiple WS lookups - there's scope for optimising this.
+    let extEntities: { [id: string]: ExtEntityRegistryEntry; } = {};
+
+    for (let key in _hass.entities) {
+      const extEntity = await getExtendedEntityRegistryEntry(_hass, key);
+      if (!extEntity) {
+        continue;
+      }
+      extEntities[key] = extEntity;
+    }
+    return extEntities;
+  }
+
+  private static async getPowerEntityIdForEnergyEntityId(
+    _hass: HomeAssistant,
+    energyEntityId: string,
+    extEntities: { [id: string]: ExtEntityRegistryEntry; },
+  ): Promise<string> {
+    /**
+     * Given an energy entity ID, find the associated power entity ID.
+     * Looks up the device ID for the energy entity, then finds the most
+     * likely power entity associated with that device.
+     */
+    const energyEntity = _hass.entities[energyEntityId];
+    if (!energyEntity) {
+      return "";
+    }
+    const deviceEntityId = energyEntity.device_id;
+    if (!deviceEntityId) {
+      return "";
+    }
+    const deviceEntity = _hass.devices[deviceEntityId];
+    if (!deviceEntity) {
+      return "";
+    }
+    let powerEntityIds: Array<string> = [];
+
+    for (let key in extEntities) {
+      const extEntity = extEntities[key];
+      if (extEntity.device_id === deviceEntityId && extEntity.original_device_class === "power") {
+        powerEntityIds.push(extEntity.entity_id);
+      }
+    }
+
+    if (powerEntityIds.length === 0) {
+      return "";
+    }
+    else if (powerEntityIds.length === 1) {
+      return powerEntityIds[0];
+    }
+    else {
+      // We have multiple power entities for this device, pick the one
+      // with the largest absolute power.
+      let mostLikelyPowerEntityId: string = powerEntityIds[0];
+      let maxPower: number = 0;
+      for (let powerEntityId of powerEntityIds) {
+        const power = Math.abs(+_hass.states[powerEntityId].state);
+        if (power > maxPower) {
+          mostLikelyPowerEntityId = powerEntityId;
+        };
+      }
+      return mostLikelyPowerEntityId;
+    }
+  }
+
+  private static async getPowerEntityIdForEnergyEntityIdWithFail(
+    _hass: HomeAssistant,
+    energyEntityId: string,
+    extEntities: { [id: string]: ExtEntityRegistryEntry; },
+  ): Promise<string> {
+    /**
+     * Given an energy entity ID, find the associated power entity ID.
+     * If not found, return a string indicating the failure.
+     */
+    let powerEntityId = await this.getPowerEntityIdForEnergyEntityId(_hass, energyEntityId, extEntities);
+    if (!powerEntityId) {
+      powerEntityId = "please_manually_enter_power_entity_id_for " + energyEntityId;
+    }
+    return powerEntityId;
+  }
+
+
+  public static async getStubConfig(
+    _hass: HomeAssistant
+  ): Promise<PowerFlowCardConfig> {
+    /**
+     * We go on a bit of a hunt to get the stub config.
+     * HA configures *energy* sources, not power sources, so we look for the
+     * original devices associated with each energy source, and find an
+     * associated power sensor for each.
+     * It's not perfect, but even if a partially populated config is a huge
+     * help to the user.
+     */
+
+    const energyPrefs = await getEnergyPreferences(_hass);
+    const extEntities: { [id: string]: ExtEntityRegistryEntry; }
+      = await this.getExtendedEntityRegistryEntries(_hass);
+
+    let returnConfig: PowerFlowCardConfig = {
+      type: "custom:hui-power-flow-card",
+    }
+    // Parse energy sources from HA's energy prefs
+    for (const source of energyPrefs.energy_sources) {
+      switch (source.type) {
+        case "grid":
+          returnConfig.power_from_grid_entity = await this.getPowerEntityIdForEnergyEntityIdWithFail(_hass, source.flow_from[0].stat_energy_from, extEntities);
+          break;
+        case "solar":
+          if (!returnConfig.generation_entities) {
+            returnConfig.generation_entities = [];
+          }
+          returnConfig.generation_entities.push(
+            await this.getPowerEntityIdForEnergyEntityIdWithFail(
+              _hass,
+              source.stat_energy_from,
+              extEntities
+            )
+          );
+          break;
+      }
+    };
+    // Parse energy consumers from HA's energy prefs
+    for (const consumer of energyPrefs.device_consumption) {
+      if (!returnConfig.consumer_entities) {
+        returnConfig.consumer_entities = [];
+      }
+      returnConfig.consumer_entities.push(
+        await this.getPowerEntityIdForEnergyEntityIdWithFail(
+          _hass,
+          consumer.stat_consumption,
+          extEntities
+        )
+      );
+    };
+    return returnConfig;
+  }
+
   protected render() {
     if (!this._config || !this.hass) {
       return nothing;
@@ -66,9 +208,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-              this.hass,
-              this._config.power_from_grid_entity
-            )}
+          this.hass,
+          this._config.power_from_grid_entity
+        )}
           </hui-warning>
         `;
       }
@@ -87,9 +229,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-              this.hass,
-              this._config.power_to_grid_entity
-            )}
+          this.hass,
+          this._config.power_to_grid_entity
+        )}
           </hui-warning>
         `;
       }
