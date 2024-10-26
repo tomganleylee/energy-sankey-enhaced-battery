@@ -66,9 +66,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-              this.hass,
-              this._config.power_from_grid_entity
-            )}
+          this.hass,
+          this._config.power_from_grid_entity
+        )}
           </hui-warning>
         `;
       }
@@ -87,9 +87,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-              this.hass,
-              this._config.power_to_grid_entity
-            )}
+          this.hass,
+          this._config.power_to_grid_entity
+        )}
           </hui-warning>
         `;
       }
