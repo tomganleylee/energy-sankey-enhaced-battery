@@ -35,8 +35,7 @@ registerCustomCard({
 @customElement("hui-energy-elec-flow-card")
 export class HuiEnergyElecFlowCard
   extends SubscribeMixin(LitElement)
-  implements LovelaceCard
-{
+  implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: EnergyElecFlowCardConfig;
@@ -74,12 +73,12 @@ export class HuiEnergyElecFlowCard
     return html`
       <ha-card>
         ${this._config.title
-          ? html`<h1 class="card-header">${this._config.title}</h1>`
-          : ""}
+        ? html`<h1 class="card-header">${this._config.title}</h1>`
+        : ""}
         <div
           class="content ${classMap({
-            "has-header": !!this._config.title,
-          })}"
+          "has-header": !!this._config.title,
+        })}"
         >
           <ha-elec-sankey
             .hass=${this.hass}
