@@ -444,12 +444,17 @@ export class ElecSankey extends LitElement {
   }
 
   private _generationInFlowWidth(): number {
-    return this._rateToWidth(
-      this._generationTrackedTotal() + this._generationPhantom()
-    );
+    const total = this._generationTrackedTotal() + this._generationPhantom()
+    if (total === 0) {
+      return 0;
+    }
+    return this._rateToWidth(total);
   }
 
   private _generationToConsumersFlowWidth(): number {
+    if (this._generationToConsumers() == 0 && !this.generationInRoutes.length) {
+      return 0;
+    }
     return this._rateToWidth(this._generationToConsumers());
   }
 
@@ -557,10 +562,13 @@ export class ElecSankey extends LitElement {
     x2: number,
     y2: number,
     svgScaleX: number = 1
-  ): [TemplateResult[], TemplateResult] {
+  ): [TemplateResult[] | symbol[], TemplateResult | symbol] {
     const totalGenWidth = this._generationInFlowWidth();
     const genToConsWidth = this._generationToConsumersFlowWidth();
 
+    if ((totalGenWidth === 0) && !Object.keys(this.generationInRoutes)) {
+      return [[nothing], nothing];
+    }
     const count =
       Object.keys(this.generationInRoutes).length +
       (this._phantomGenerationInRoute !== undefined ? 1 : 0);
@@ -582,29 +590,34 @@ export class ElecSankey extends LitElement {
     for (const key in routes) {
       if (Object.prototype.hasOwnProperty.call(routes, key)) {
         // const friendlyName = routes.text;
+        let width = 0;
         const rate = routes[key].rate;
-        const width = this._rateToWidth(rate);
-        svgArray.push(
-          renderFlowByCorners(
-            xA + width,
-            startTerminatorY,
-            xA,
-            startTerminatorY,
-            xB + width,
-            startTerminatorY + TERMINATOR_BLOCK_LENGTH,
-            xB,
-            startTerminatorY + TERMINATOR_BLOCK_LENGTH,
-            "generation"
-          )
-        );
-        svgArray.push(
-          svg`
-          <polygon points="${xA + width},${startTerminatorY}
-          ${xA},${startTerminatorY},
-          ${xA + width / 2},${startTerminatorY + ARROW_HEAD_LENGTH}"
-          class="tint"/>
-        `
-        );
+        // Most of the time, if the rate is zero, we don't want to draw it.
+        // Exception is if we have > phantom source.
+        if (rate || routes.phantom.rate > 0) {
+          width = this._rateToWidth(rate);
+          svgArray.push(
+            renderFlowByCorners(
+              xA + width,
+              startTerminatorY,
+              xA,
+              startTerminatorY,
+              xB + width,
+              startTerminatorY + TERMINATOR_BLOCK_LENGTH,
+              xB,
+              startTerminatorY + TERMINATOR_BLOCK_LENGTH,
+              "generation"
+            )
+          );
+          svgArray.push(
+            svg`
+            <polygon points="${xA + width},${startTerminatorY}
+            ${xA},${startTerminatorY},
+            ${xA + width / 2},${startTerminatorY + ARROW_HEAD_LENGTH}"
+            class="tint"/>
+          `
+          );
+        }
 
         const midX = xA + width / 2;
         const LABEL_WIDTH = 72;
