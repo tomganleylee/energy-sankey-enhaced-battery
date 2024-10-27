@@ -1,3 +1,5 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+
 # Energy Sankey
 
 Energy Sankey is a collection of dashboard cards for homeassistant, dynamically displaying the flow of electrical energy and power.
@@ -12,7 +14,7 @@ There are two main cards:
 
 Both cards base their configuration on the existing home assistant energy configuration.
 
-Both are live and automatically updating. The cards try to display a coherent representation even if the data set is incomplete or physically impossible (e.g. exporting more than the total generated). This means it is ok for asynchronous updates to be made to any of the entities it is listening to. 
+Both are live and automatically updating. The cards try to display a coherent representation even if the data set is incomplete or physically impossible (e.g. exporting more than the total generated). This means it is ok for asynchronous updates to be made to any of the entities it is listening to.
 
 The width of the flows represents the amount, and the overall size of everything is automatically scaled so that no one part of the diagram becomes too wide.
 
