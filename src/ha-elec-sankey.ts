@@ -44,31 +44,26 @@ export class HaElecSankey extends ElecSankey {
         class=${id ? "label label-action-clickable" : "label"}
         id=${_id}
         @click=${id ? this._handleMoreInfo : nothing}
-      >
-        ${_name || nothing}
-        ${icon
-          ? html`<ha-svg-icon id=${_id} .path=${icon}> </ha-svg-icon><br />`
-          : nothing}
-        ${valueB !== undefined
-          ? html` <span class="return" id=${_id}>
+      >${_name || nothing} ${icon
+        ? html`<ha-svg-icon id=${_id} .path=${icon}> </ha-svg-icon>`
+        : nothing}${valueB !== undefined
+          ? html`<br /><span class="return" id=${_id}>
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowLeft}>
                 </ha-svg-icon
                 >${formatNumber(valueB, this.hass.locale, {
-                  maximumFractionDigits: 1,
-                })}&nbsp;${this.unit}</span
+            maximumFractionDigits: 0,
+          })}&nbsp;${this.unit}</span
               ><br />
               <span class="consumption" id=${_id}>
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowRight}>
                 </ha-svg-icon
                 >${formatNumber(valueA, this.hass.locale, {
-                  maximumFractionDigits: 1,
-                })}&nbsp;${this.unit}
+            maximumFractionDigits: 0,
+          })}&nbsp;${this.unit}
               </span>`
-          : html`${formatNumber(valueA, this.hass.locale, {
-              maximumFractionDigits: 1,
-            })}&nbsp;${this.unit}`}
-      </div>
-    `;
+          : html`<br />${formatNumber(valueA, this.hass.locale, {
+            maximumFractionDigits: 0,
+          })}&nbsp;${this.unit}`}</div>`;
   }
 
   private _handleMoreInfo(e: MouseEvent) {

@@ -1174,6 +1174,9 @@ export class ElecSankey extends LitElement {
       flex-shrink: 0;
       justify-content: left;
       padding-left: 6px;
+      white-space: pre;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     svg {
       rect {
