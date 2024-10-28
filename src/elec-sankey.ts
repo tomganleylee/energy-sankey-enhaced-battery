@@ -580,10 +580,11 @@ export class ElecSankey extends LitElement {
     const divArray: TemplateResult[] = [];
 
     const startTerminatorY = 0;
-
+    let phantomRate = 0;
     const routes = structuredClone(this.generationInRoutes);
     if (this._phantomGenerationInRoute !== undefined) {
       routes.phantom = this._phantomGenerationInRoute;
+      phantomRate = this._phantomGenerationInRoute.rate;
     }
     let i = 0;
     // eslint-disable-next-line guard-for-in
@@ -591,10 +592,10 @@ export class ElecSankey extends LitElement {
       if (Object.prototype.hasOwnProperty.call(routes, key)) {
         // const friendlyName = routes.text;
         let width = 0;
-        const rate = routes[key].rate;
+        const rate = routes[key].rate || 0; // Handle undefined (NaN) rates.
         // Most of the time, if the rate is zero, we don't want to draw it.
-        // Exception is if we have > phantom source.
-        if (rate || routes.phantom.rate > 0) {
+        // Exception is if we have a >0 phantom source.
+        if (rate || phantomRate > 0) {
           width = this._rateToWidth(rate);
           svgArray.push(
             renderFlowByCorners(
