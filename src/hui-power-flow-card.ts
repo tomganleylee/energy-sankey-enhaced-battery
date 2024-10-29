@@ -9,6 +9,7 @@ import {
 } from "lit";
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
+import { classMap } from "lit/directives/class-map.js";
 import { ElecRoute } from "./elec-sankey";
 import { applyThemesOnElement } from "./ha/common/dom/apply_themes_on_element";
 import { computeStateName } from "./ha/common/entity/compute_state_name";
@@ -285,14 +286,23 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
     return html`
       <ha-card>
-        <ha-elec-sankey
-          .hass=${this.hass}
-          .unit=${"W"}
-          .gridInRoute=${gridInRoute || undefined}
-          .gridOutRoute=${gridOutRoute || undefined}
-          .generationInRoutes=${generationInRoutes}
-          .consumerRoutes=${consumerRoutes}
-        ></ha-elec-sankey>
+        ${this._config.title
+        ? html`<h1 class="card-header">${this._config.title}</h1>`
+        : ""}
+        <div
+          class="content ${classMap({
+          "has-header": !!this._config.title,
+        })}"
+        >
+          <ha-elec-sankey
+            .hass=${this.hass}
+            .unit=${"W"}
+            .gridInRoute=${gridInRoute || undefined}
+            .gridOutRoute=${gridOutRoute || undefined}
+            .generationInRoutes=${generationInRoutes}
+            .consumerRoutes=${consumerRoutes}
+          ></ha-elec-sankey>
+        </div>
       </ha-card>
     `;
   }
