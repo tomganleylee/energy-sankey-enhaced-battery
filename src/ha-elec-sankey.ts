@@ -39,6 +39,7 @@ export class HaElecSankey extends ElecSankey {
     valueB: number | undefined
   ): TemplateResult {
     const _id = id || "";
+    const numFractionDigits = this.unit === "kWh" ? 1 : 0;
     return html`
       <div
         class=${id ? "label label-action-clickable" : "label"}
@@ -51,18 +52,18 @@ export class HaElecSankey extends ElecSankey {
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowLeft}>
                 </ha-svg-icon
                 >${formatNumber(valueB, this.hass.locale, {
-            maximumFractionDigits: 0,
+            maximumFractionDigits: numFractionDigits,
           })}&nbsp;${this.unit}</span
               ><br />
               <span class="consumption" id=${_id}>
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowRight}>
                 </ha-svg-icon
                 >${formatNumber(valueA, this.hass.locale, {
-            maximumFractionDigits: 0,
+            maximumFractionDigits: numFractionDigits,
           })}&nbsp;${this.unit}
               </span>`
           : html`<br />${formatNumber(valueA, this.hass.locale, {
-            maximumFractionDigits: 0,
+            maximumFractionDigits: numFractionDigits,
           })}&nbsp;${this.unit}`}</div>`;
   }
 
