@@ -295,7 +295,7 @@ export class ElecSankey extends LitElement {
     let totalGen = 0;
     for (const key in this.generationInRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.generationInRoutes, key)) {
-        totalGen += this.generationInRoutes[key].rate;
+        totalGen += this.generationInRoutes[key].rate || 0;
       }
     }
     return totalGen;
@@ -427,6 +427,7 @@ export class ElecSankey extends LitElement {
 
     const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 1.0);
     this._rateToWidthMultplier = TARGET_SCALED_TRUNK_WIDTH / widest_trunk;
+    console.log("NEW Rate to width multiplier: " + this._rateToWidthMultplier);
   }
 
   private _generationToConsumers(): number {
