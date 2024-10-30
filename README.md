@@ -1,5 +1,5 @@
 
-# Home Assistant Energy Sankey
+# Home Assistant Energy Sankey Cards
 
 [![GitHub Release][releases-shield]][releases]
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
