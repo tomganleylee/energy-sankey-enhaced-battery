@@ -9,7 +9,7 @@ Energy Sankey is a collection of dashboard cards for homeassistant, dynamically 
 The cards are ideal if you want to track your energy consumption and identify where your energy is going.
 
 There are two main cards:
- - a card showing the total _energy_ flow based on a configurable time range (e.g. day so far).
+ - a card showing the total _energy_ flow based on a configurable* time range (e.g. day so far).
  - a user configurable card showing the _power_ flow for a set of sensors. This represents the live power flow at the current moment.
 
 Both cards base their configuration on the existing home assistant energy configuration.
@@ -25,8 +25,8 @@ The diagram dynamically scales to fit the size of the window it is in (mostly).
 
 Outstanding issues to solve:
 - [ ] Sometimes there are thin dark lines between the blocks that make up the shapes, I believe this is caused by antialiasing, but I don't see an easy way of reducing/eliminating it, especially where the shapes are across two divs.
-- [ ] If you stretch the card really wide, it sort of looks a bit silly. Perhaps that's not a major issue though.
 - [ ] There are probably more edge cases to experiment with, such as multiple generation sources, grid configured with only input or output, and either of those being negative to represent flow in the opposite direction.
+- [ ] *Configurable time range is not yet implemented
 
 
 - [ ] Battery storage is not supported yet. That could be added in the future.
