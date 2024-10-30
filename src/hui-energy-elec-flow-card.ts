@@ -66,6 +66,13 @@ export class HuiEnergyElecFlowCard
     this._config = config;
   }
 
+  static getStubConfig(): EnergyElecFlowCardConfig {
+    return {
+      type: "custom:hui-energy-elec-flow-card",
+      title: "Energy distribution today",
+    };
+  }
+
   protected render() {
     if (!this.hass || !this._config) {
       return nothing;

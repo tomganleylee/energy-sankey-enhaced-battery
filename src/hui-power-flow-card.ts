@@ -161,6 +161,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
 
     let returnConfig: PowerFlowCardConfig = {
       type: "custom:hui-power-flow-card",
+      title: "Live power flow",
     }
     // Parse energy sources from HA's energy prefs
     for (const source of energyPrefs.energy_sources) {
