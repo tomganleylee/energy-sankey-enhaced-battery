@@ -2,7 +2,7 @@
 # Home Assistant Energy Sankey
 
 [![GitHub Release][releases-shield]][releases]
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![License][license-shield]](LICENSE.md)
 
 
@@ -29,7 +29,7 @@ The colour of the flows heading to the consumers represents the blend of locally
 The diagram dynamically scales to fit the size of the window it is in (mostly).
 
 # Installation
- - Open HACS and search for Energy Sankey
+ - Open HACS and add the custom repository https://github.com/davet2001/energy-sankey <!--  - Open HACS and search for Energy Sankey  -->
  - Click on the repository and select download
  - Reload when prompted
  - Select a dashboard and enter editing mode
