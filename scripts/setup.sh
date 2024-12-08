@@ -1,5 +1,7 @@
 #!/bin/bash
 # Script to setup node.js ready for card development.
+# So far this has been used inside a homeassistant core vscode devcontainer.
+#
 # After completing setup, use
 #
 # npm run start

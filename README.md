@@ -10,7 +10,7 @@ Energy Sankey is a collection of dashboard cards for homeassistant, dynamically 
 
 ![alt text](image.png)
 
-The cards are ideal if you want to track your energy consumption and identify where your energy is going.
+The cards are ideal if you want to track your electricity consumption and identify where your energy is going.
 
 The aim is for as easy setup as possible. No configuring groups of child entities, complicated choices or hunting for info to populate a yaml configuration. In most cases, the default configuration should just work.
 
@@ -34,7 +34,7 @@ The diagram dynamically scales to fit the size of the window it is in (mostly).
  - Reload when prompted
  - Select a dashboard and enter editing mode
  - Type 'Sankey' in the search box
- - Select 'Custom: Sankey Energy Flow Card' or 'Custom: Sakney Power Flow Card'
+ - Select 'Custom: Sankey Energy Flow Card' or 'Custom: Sankey Power Flow Card'
    - The energy card does not require configuration
    - The power card auto configures. If there are any problems with autoconfiguration, edit the displayed yaml to select the correct power entities for grid input / generation / consumers.
 
