@@ -16,12 +16,15 @@ import { computeStateName } from "./ha/common/entity/compute_state_name";
 import { isValidEntityId } from "./ha/common/entity/valid_entity_id";
 import type { HomeAssistant } from "./ha/types";
 import { createEntityNotFoundWarning } from "./ha/panels/lovelace/components/hui-warning";
-import type { LovelaceCard } from "./ha/panels/lovelace/types";
+import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/types";
 import type { PowerFlowCardConfig } from "./types";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
 import { registerCustomCard } from "./utils/custom-cards";
 import { getEnergyPreferences } from "./ha/data/energy";
 import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/data/entity_registry";
+
+
+import { POWER_CARD_NAME, POWER_CARD_EDITOR_NAME } from "./const";
 
 registerCustomCard({
   type: "hui-power-flow-card",
@@ -35,6 +38,13 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: PowerFlowCardConfig;
+
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import("./power-flow-card-editor");
+    return document.createElement(
+      POWER_CARD_EDITOR_NAME
+    ) as LovelaceCardEditor
+  }
 
   public getCardSize(): number {
     return 3;
