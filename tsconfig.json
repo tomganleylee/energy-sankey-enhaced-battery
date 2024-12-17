@@ -4,7 +4,11 @@
         "target": "es2017",
         "module": "esnext",
         "moduleResolution": "node",
-        "lib": ["es2017", "dom", "dom.iterable"],
+        "lib": [
+            "es2017",
+            "dom",
+            "dom.iterable"
+        ],
         "noEmit": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
@@ -17,6 +21,10 @@
         "outDir": "dist",
         "rootDir": "."
     },
-    "include": ["**/*.ts"],
-    "exclude": ["node_modules"]
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }

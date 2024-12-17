@@ -1,20 +1,31 @@
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators";
 
 import { LovelaceCardEditor } from "./ha/panels/lovelace/types";
 import { PowerFlowCardConfig } from "./types";
 import { html, LitElement, nothing } from "lit";
 import { HomeAssistant, LocalizeFunc } from "./ha/types";
 import { HaFormSchema } from "./utils/form/ha-form";
+//import "./ha/panels/lovelace/editor/hui-entities-card-row-editor";
 import memoizeOne from "memoize-one";
-import { fireEvent } from "./ha/common/dom/fire_event";
-// import "ha/panels/lovelace/editor/hui-element-editor"
+import { fireEvent, HASSDomEvent } from "./ha/common/dom/fire_event";
+import type {
+  EditDetailElementEvent,
+  SubElementEditorConfig,
+} from "./ha/panels/lovelace/editor/types";
+
 import { POWER_CARD_EDITOR_NAME } from "./const";
 
-const GRID_POWER_IN_ENTITY_DOMAINS = ["sensor"];
-
 const schema = [
-  { name: "grid-in", selector: { entity: { domain: GRID_POWER_IN_ENTITY_DOMAINS } } },
-  { name: "name", selector: { text: {} } },
+  { name: "title", selector: { text: {} } },
+  {
+    name: "power_from_grid_entity", selector: {
+      entity: {
+        domain: "sensor",
+        device_class: "power",
+      }
+    }
+  },
+  { name: "group_small", selector: { boolean: {} } },
   // {
   //   type: "grid",
   //   name: "",
@@ -47,11 +58,19 @@ const schema = [
 export class PowerFlowCardEditor extends LitElement implements LovelaceCardEditor {
 
   @property({ attribute: false }) public hass!: HomeAssistant;
-  
+
   @state() private _config?: PowerFlowCardConfig;
+
+  @state() private _configEntities?: string[];
+
+  @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = config;
+    this._configEntities = config.consumer_entities;
+    this._configEntities?.forEach(element => {
+      console.log("element: ", element);
+    });
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
@@ -72,7 +91,13 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}
       ></ha-form>
-    `;    
+      <hui-entities-card-row-editor
+        .hass=${this.hass}
+        .entities=${this._configEntities}
+        @entities-changed=${this._valueChanged}
+        @edit-detail-element=${this._editDetailElement}
+      ></hui-entities-card-row-editor>
+    `;
   }
 
   private _valueChanged(ev: CustomEvent): void {
@@ -83,5 +108,9 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     }
 
     fireEvent(this, "config-changed", { config });
-  }  
+  }
+
+  private _editDetailElement(ev: HASSDomEvent<EditDetailElementEvent>): void {
+    this._subElementEditorConfig = ev.detail.subElementConfig;
+  }
 }
