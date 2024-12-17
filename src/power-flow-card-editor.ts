@@ -5,7 +5,7 @@ import { PowerFlowCardConfig } from "./types";
 import { html, LitElement, nothing } from "lit";
 import { HomeAssistant, LocalizeFunc } from "./ha/types";
 import { HaFormSchema } from "./utils/form/ha-form";
-//import "./ha/panels/lovelace/editor/hui-entities-card-row-editor";
+import "./ha/panels/lovelace/editor/hui-entities-card-row-editor";
 import memoizeOne from "memoize-one";
 import { fireEvent, HASSDomEvent } from "./ha/common/dom/fire_event";
 import type {
@@ -14,6 +14,7 @@ import type {
 } from "./ha/panels/lovelace/editor/types";
 
 import { POWER_CARD_EDITOR_NAME } from "./const";
+import { EntityConfig, LovelaceRowConfig } from "./ha/panels/lovelace/entity-rows/types";
 
 const schema = [
   { name: "title", selector: { text: {} } },
@@ -61,14 +62,18 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
   @state() private _config?: PowerFlowCardConfig;
 
-  @state() private _configEntities?: string[];
+  @state() private _configConsumerEntities: EntityConfig[] = []
 
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = config;
-    this._configEntities = config.consumer_entities;
-    this._configEntities?.forEach(element => {
+    config.consumer_entities?.forEach(element => {
+      const entityConfig: EntityConfig = {
+        entity: element,
+        name: "placeholder name1"
+      }
+      this._configConsumerEntities.push(entityConfig);
       console.log("element: ", element);
     });
   }
@@ -93,7 +98,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       ></ha-form>
       <hui-entities-card-row-editor
         .hass=${this.hass}
-        .entities=${this._configEntities}
+        .entities=${this._configConsumerEntities}
         @entities-changed=${this._valueChanged}
         @edit-detail-element=${this._editDetailElement}
       ></hui-entities-card-row-editor>

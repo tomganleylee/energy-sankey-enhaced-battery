@@ -25,11 +25,16 @@ export interface IntegrationManifest {
   loggers?: string[];
   quality_scale?: "gold" | "internal" | "platinum" | "silver";
   iot_class:
-    | "assumed_state"
-    | "cloud_polling"
-    | "cloud_push"
-    | "local_polling"
-    | "local_push";
+  | "assumed_state"
+  | "cloud_polling"
+  | "cloud_push"
+  | "local_polling"
+  | "local_push";
   single_config_entry?: boolean;
   version?: string;
 }
+
+export const domainToName = (
+  domain: string,
+  manifest?: IntegrationManifest
+) => manifest?.name || domain;

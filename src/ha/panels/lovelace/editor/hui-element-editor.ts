@@ -18,12 +18,12 @@
 // } from "../types";
 // import type { HuiFormEditor } from "./config-elements/hui-form-editor";
 // import { GUISupportError } from "./gui-support-error";
-// import type {
-//   EditDetailElementEvent,
-//   EditSubElementEvent,
-//   GUIModeChangedEvent,
-//   SubElementEditorConfig,
-// } from "./types";
+import type {
+  EditDetailElementEvent,
+  EditSubElementEvent,
+  // GUIModeChangedEvent,
+  // SubElementEditorConfig,
+} from "./types";
 
 export interface ConfigChangedEvent<T extends object = object> {
   config: T;
@@ -35,8 +35,8 @@ declare global {
   interface HASSDomEvents {
     "config-changed": ConfigChangedEvent;
     // "GUImode-changed": GUIModeChangedEvent;
-    // "edit-detail-element": EditDetailElementEvent;
-    // "edit-sub-element": EditSubElementEvent;
+    "edit-detail-element": EditDetailElementEvent;
+    "edit-sub-element": EditSubElementEvent;
   }
 }
 
