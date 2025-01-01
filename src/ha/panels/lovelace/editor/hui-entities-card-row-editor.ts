@@ -44,7 +44,6 @@ export class HuiEntitiesCardRowEditor extends LitElement {
     }
 
     return html`
-      <p>Placeholder entry to make this recognisable</p>
       <h3>
         ${this.label ||
       `${this.hass!.localize(

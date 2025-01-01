@@ -50,14 +50,14 @@ import type { LovelaceElementConfig } from "../elements/types";
 //   target: EventTarget | null;
 // }
 
-// export interface EditorTarget extends EventTarget {
-//   value?: string;
-//   index?: number;
-//   checked?: boolean;
-//   configValue?: string;
-//   type?: HTMLInputElement["type"];
-//   config: ActionConfig;
-// }
+export interface EditorTarget extends EventTarget {
+  value?: string;
+  index?: number;
+  checked?: boolean;
+  configValue?: string;
+  type?: HTMLInputElement["type"];
+  config: ActionConfig;
+}
 
 // export interface Card {
 //   type: string;
