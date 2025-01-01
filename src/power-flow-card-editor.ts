@@ -64,10 +64,6 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
   @state() private _config?: PowerFlowCardConfig;
 
-  @state() private _title?: string;
-
-  @state() private _theme?: string;
-
   @state() private _configConsumerEntities: EntityConfig[] = []
 
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
@@ -141,15 +137,22 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     if (!configValue && value) {
       // A form value changed. We don't know which one.
       // Could be title or anything else in the schema.
-      if (value.title !== this._title) {
+      if (value.title !== this._config.title) {
         configValue = "title";
         value = value.title;
       }
-      else if (value.theme !== this._theme) {
-        configValue = "theme";
-        value = value.theme;
+      // else if (value.theme !== this._config.theme) {
+      //   configValue = "theme";
+      //   value = value.theme;
+      // }
+      else if (value.power_from_grid_entity
+        !== this._config.power_from_grid_entity) {
+        configValue = "power_from_grid_entity";
+        value = value.power_from_grid_entity;
       }
-      console.warn("unhandled change in <ha-form>");
+      else {
+        console.warn("unhandled change in <ha-form>");
+      }
     }
 
     if (configValue === "row" || (ev.detail && ev.detail.entities)) {
