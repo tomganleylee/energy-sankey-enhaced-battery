@@ -26,6 +26,8 @@ export class HuiEntitiesCardRowEditor extends LitElement {
 
   @property({ attribute: false }) public entities?: LovelaceRowConfig[];
 
+  @property() public includeDeviceClasses?: string[];
+
   @property() public label?: string;
 
   private _entityKeys = new WeakMap<LovelaceRowConfig, string>();
@@ -42,6 +44,9 @@ export class HuiEntitiesCardRowEditor extends LitElement {
     if (!this.entities || !this.hass) {
       return nothing;
     }
+    const deviceClassesFilter = this.includeDeviceClasses
+      ? '["' + this.includeDeviceClasses?.join('","') + '"]'
+      : "";
 
     return html`
       <h3>
@@ -82,6 +87,7 @@ export class HuiEntitiesCardRowEditor extends LitElement {
             : html`
                       <ha-entity-picker
                         allow-custom-entity
+                        include-device-classes=${deviceClassesFilter}
                         hideClearIcon
                         .hass=${this.hass}
                         .value=${(entityConf as EntityConfig).entity}

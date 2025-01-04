@@ -113,7 +113,9 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       ></ha-form>
       <hui-entities-card-row-editor
         .hass=${this.hass}
+        label="Consumer Entities (required)"
         .entities=${this._configConsumerEntities}
+        includeDeviceClasses=${["power"]}
         @entities-changed=${this._valueChanged}
         @edit-detail-element=${this._editDetailElement}
       ></hui-entities-card-row-editor>
