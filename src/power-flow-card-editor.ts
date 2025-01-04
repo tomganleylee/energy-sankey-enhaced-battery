@@ -28,6 +28,14 @@ const schema = [
       }
     }
   },
+  {
+    name: "generation_entity", selector: {
+      entity: {
+        domain: "sensor",
+        device_class: "power",
+      }
+    }
+  },
   { name: "group_small", selector: { boolean: {} } },
   // {
   //   type: "grid",
@@ -82,7 +90,14 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
-    return `${schema.name} - placeholder label`;
+    switch (schema.name) {
+      case "title": return "Title";
+      case "power_from_grid_entity": return "Power from grid";
+      case "group_small": return "Group low values together";
+      case "generation_entity": return "Power from generation (optional)";
+    }
+    console.error("Error name key missing for '" + schema.name + "'")
+    return ""
   };
 
   protected render() {
@@ -151,6 +166,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         !== this._config.power_from_grid_entity) {
         configValue = "power_from_grid_entity";
         value = value.power_from_grid_entity;
+      }
+      else if (value.generation_entity
+        !== this._config.generation_entity) {
+        configValue = "generation_entity";
+        value = value.generation_entity;
       }
       else {
         console.warn("unhandled change in <ha-form>");

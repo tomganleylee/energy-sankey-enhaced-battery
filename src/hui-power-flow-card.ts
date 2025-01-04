@@ -182,16 +182,16 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
           returnConfig.power_from_grid_entity = await this.getPowerEntityIdForEnergyEntityIdWithFail(_hass, source.flow_from[0].stat_energy_from, extEntities);
           break;
         case "solar":
-          if (!returnConfig.generation_entities) {
-            returnConfig.generation_entities = [];
+          let generation_entity = "";
+          // In future we might support multiple generation entities
+          generation_entity = await this.getPowerEntityIdForEnergyEntityId(
+            _hass,
+            source.stat_energy_from,
+            extEntities
+          )
+          if (generation_entity) {
+            returnConfig.generation_entity = generation_entity;
           }
-          returnConfig.generation_entities.push(
-            await this.getPowerEntityIdForEnergyEntityIdWithFail(
-              _hass,
-              source.stat_energy_from,
-              extEntities
-            )
-          );
           break;
       }
     };
@@ -200,12 +200,14 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       if (!returnConfig.consumer_entities) {
         returnConfig.consumer_entities = [];
       }
-      const entityId = await this.getPowerEntityIdForEnergyEntityIdWithFail(
+      const entityId = await this.getPowerEntityIdForEnergyEntityId(
         _hass,
         consumer.stat_consumption,
         extEntities
       )
-      returnConfig.consumer_entities.push({ entity: entityId });
+      if (entityId) {
+        returnConfig.consumer_entities.push({ entity: entityId });
+      }
     };
     return returnConfig;
   }
@@ -214,43 +216,51 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     if (!this._config || !this.hass) {
       return nothing;
     }
+    let config = this._config;
+    // The editor only supports a single generation entity, so we need to
+    // convert the single entity to an array.
+    if (config.generation_entity) {
+      config.generation_entities = [config.generation_entity];
+      delete (config.generation_entity)
+    }
+
     let gridInRoute: ElecRoute | null = null;
-    if (this._config.power_from_grid_entity) {
-      const stateObj = this.hass.states[this._config.power_from_grid_entity];
+    if (config.power_from_grid_entity) {
+      const stateObj = this.hass.states[config.power_from_grid_entity];
       if (!stateObj) {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
           this.hass,
-          this._config.power_from_grid_entity
+          config.power_from_grid_entity
         )}
           </hui-warning>
         `;
       }
       const name = computeStateName(stateObj);
       gridInRoute = {
-        id: this._config.power_from_grid_entity,
+        id: config.power_from_grid_entity,
         text: name,
         rate: Number(stateObj.state),
       };
     }
 
     let gridOutRoute: ElecRoute | null = null;
-    if (this._config.power_to_grid_entity) {
-      const stateObj = this.hass.states[this._config.power_to_grid_entity];
+    if (config.power_to_grid_entity) {
+      const stateObj = this.hass.states[config.power_to_grid_entity];
       if (!stateObj) {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
           this.hass,
-          this._config.power_to_grid_entity
+          config.power_to_grid_entity
         )}
           </hui-warning>
         `;
       }
       const name = computeStateName(stateObj);
       gridOutRoute = {
-        id: this._config.power_to_grid_entity,
+        id: config.power_to_grid_entity,
         text: name,
         rate: Number(stateObj.state),
       };
@@ -258,7 +268,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
 
     const generationInRoutes: { [id: string]: ElecRoute } = {};
     if (this._config.generation_entities) {
-      for (const entity of this._config.generation_entities) {
+      for (const entity of config.generation_entities) {
         const stateObj = this.hass.states[entity];
         if (!stateObj) {
           return html`
@@ -302,8 +312,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
     return html`
       <ha-card>
-        ${this._config.title
-        ? html`<h1 class="card-header">${this._config.title}</h1>`
+        ${config.title
+        ? html`<h1 class="card-header">${config.title}</h1>`
         : ""}
         <div
           class="content ${classMap({
