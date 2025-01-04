@@ -98,15 +98,6 @@ export class HuiEntitiesCardRowEditor extends LitElement {
                   .index=${index}
                   @click=${this._removeRow}
                 ></ha-icon-button>
-                <ha-icon-button
-                  .label=${this.hass!.localize(
-              "ui.components.entity.entity-picker.edit"
-            )}
-                  .path=${mdiPencil}
-                  class="edit-icon"
-                  .index=${index}
-                  @click=${this._editRow}
-                ></ha-icon-button>
               </div>
             `
       )}
