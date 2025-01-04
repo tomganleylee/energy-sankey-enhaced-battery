@@ -111,6 +111,7 @@ export class HuiEntitiesCardRowEditor extends LitElement {
       </ha-sortable>
       <ha-entity-picker
         class="add-entity"
+        include-device-classes=${deviceClassesFilter}
         .hass=${this.hass}
         @value-changed=${this._addEntity}
       ></ha-entity-picker>
