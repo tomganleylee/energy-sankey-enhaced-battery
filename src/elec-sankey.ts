@@ -109,7 +109,7 @@ function line_intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
   const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
   if (denom === 0) {
     // eslint-disable-next-line no-console
-    console.log("Warning: Lines do not intersect.");
+    console.warn("Warning: Lines do not intersect.");
     return null;
   }
   const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
@@ -203,7 +203,7 @@ function renderFlowByCorners(
   );
   if (ret1 == null || ret2 == null || ret3 == null || ret4 == null) {
     // eslint-disable-next-line no-console
-    console.log("Warning: render flow failed.");
+    console.warn("Warning: render flow failed.");
     return svg``;
   }
   const [bezierStartLX, bezierStartLY, ,] = ret1;
@@ -427,7 +427,6 @@ export class ElecSankey extends LitElement {
 
     const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 1.0);
     this._rateToWidthMultplier = TARGET_SCALED_TRUNK_WIDTH / widest_trunk;
-    console.log("NEW Rate to width multiplier: " + this._rateToWidthMultplier);
   }
 
   private _generationToConsumers(): number {
