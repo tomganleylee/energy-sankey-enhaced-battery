@@ -20,10 +20,11 @@ import {
 } from "./ha/data/recorder";
 import { SubscribeMixin } from "./ha/mixins/subscribe-mixin";
 import { HomeAssistant } from "./ha/types";
-import { LovelaceCard } from "./ha/panels/lovelace/types";
+import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/types";
 import { EnergyElecFlowCardConfig } from "./types";
 
 import { registerCustomCard } from "./utils/custom-cards";
+import { ENERGY_CARD_EDITOR_NAME } from "./const";
 
 registerCustomCard({
   type: "hui-energy-elec-flow-card",
@@ -60,6 +61,13 @@ export class HuiEnergyElecFlowCard
 
   public getCardSize(): Promise<number> | number {
     return 3;
+  }
+
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import("./energy-flow-card-editor");
+    return document.createElement(
+      ENERGY_CARD_EDITOR_NAME
+    ) as LovelaceCardEditor;
   }
 
   public setConfig(config: EnergyElecFlowCardConfig): void {
