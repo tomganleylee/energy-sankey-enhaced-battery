@@ -4,11 +4,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat";
 import { fireEvent } from "../../../common/dom/fire_event";
-// import "../../../components/entity/ha-entity-picker";
 import type { HaEntityPicker } from "../../../components/entity/ha-entity-picker";
-// import "../../../components/ha-icon-button";
-// import "../../../components/ha-sortable";
-// import "../../../components/ha-svg-icon";
 import type { HomeAssistant } from "../../../types";
 import type { EntityConfig, LovelaceRowConfig } from "../entity-rows/types";
 
@@ -20,7 +16,7 @@ declare global {
   }
 }
 
-@customElement("hui-entities-card-row-editor")
+@customElement("elec-sankey-hui-entities-card-row-editor")
 export class HuiEntitiesCardRowEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
