@@ -37,32 +37,6 @@ const schema = [
     }
   },
   // { name: "group_small", selector: { boolean: {} } },
-  // {
-  //   type: "grid",
-  //   name: "",
-  //   schema: [
-  //     {
-  //       name: "icon",
-  //       selector: { icon: {} },
-  //       context: { icon_entity: "entity" },
-  //     },
-  //     { name: "icon_color", selector: { mush_color: {} } },
-  //   ],
-  // },
-  // ...APPEARANCE_FORM_SCHEMA,
-  // {
-  //   name: "display_mode",
-  //   selector: {
-  //     select: {
-  //       options: ["default", ...DISPLAY_MODES].map((control) => ({
-  //         value: control,
-  //         label: localize(`editor.card.number.display_mode_list.${control}`),
-  //       })),
-  //       mode: "dropdown",
-  //     },
-  //   },
-  // },
-  // ...computeActionsFormSchema(),
 ];
 
 @customElement(POWER_CARD_EDITOR_NAME)
@@ -78,14 +52,6 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = config;
-    // config.consumer_entities?.forEach(element => {
-    //   const entityConfig: EntityConfig = {
-    //     entity: element,
-    //     name: "placeholder name1"
-    //   }
-    //   this._configConsumerEntities.push(entityConfig);
-    //   console.log("element: ", element);
-    // });
     this._configConsumerEntities = processEditorEntities(config.consumer_entities);
   }
 
@@ -101,7 +67,6 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   };
 
   protected render() {
-    console.log("####Render####");
     if (!this.hass || !this._config) {
       return nothing;
     }
