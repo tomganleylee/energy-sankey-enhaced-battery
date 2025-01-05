@@ -55,18 +55,13 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     if (
       !config.power_from_grid_entity &&
       !config.power_to_grid_entity &&
-      !config.generation_entities &&
-      !config.consumer_entities
+      !config.generation_entity &&
+      config.consumer_entities.length === 0
     ) {
       throw new Error("Must specify at least one entity");
     }
-    if (config.power_from_grid_entity) {
-      if (!isValidEntityId(config.power_from_grid_entity)) {
-        throw new Error("Invalid power from grid entity specified");
-      }
-      // @todo consider adding more config checks here.
-      this._config = { ...config };
-    }
+    // @todo consider adding more config checks here.
+    this._config = { ...config };
   }
 
   private static async getExtendedEntityRegistryEntries(_hass: HomeAssistant): Promise<{ [id: string]: ExtEntityRegistryEntry }> {
@@ -267,7 +262,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     const generationInRoutes: { [id: string]: ElecRoute } = {};
-    if (this._config.generation_entities) {
+    if (config.generation_entities) {
       for (const entity of config.generation_entities) {
         const stateObj = this.hass.states[entity];
         if (!stateObj) {
