@@ -99,6 +99,14 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         @entities-changed=${this._valueChanged}
         @edit-detail-element=${this._editDetailElement}
       ></elec-sankey-hui-entities-card-row-editor>
+      <ha-alert
+        alert-type="info"
+      >
+        Please note that this card is in development!
+        If you see a bug or a possible improvement, please use the
+        <a href="https://github.com/davet2001/energy-sankey/issues">issue tracker</a>
+        to help us improve it!
+      </ha-alert>
     `;
   }
 
