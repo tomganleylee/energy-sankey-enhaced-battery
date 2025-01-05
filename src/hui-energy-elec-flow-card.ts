@@ -121,8 +121,9 @@ export class HuiEnergyElecFlowCard
         energyData.stats,
         types.grid![0].flow_from.map((flow) => flow.stat_energy_from)
       ) ?? 0;
+    const gridInId = types.grid![0].flow_from[0].stat_energy_from;
     this._gridInRoute = {
-      id: "grid-in-all",
+      id: gridInId,
       rate: totalFromGrid,
     };
 
@@ -131,8 +132,9 @@ export class HuiEnergyElecFlowCard
         energyData.stats,
         types.grid![0].flow_to.map((flow) => flow.stat_energy_to)
       ) ?? 0;
+    const gridOutId = types.grid![0].flow_to[0].stat_energy_to;
     this._gridOutRoute = {
-      id: "grid-out-all",
+      id: gridOutId,
       rate: totalToGrid,
     };
 
