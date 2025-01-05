@@ -36,7 +36,7 @@ const schema = [
       }
     }
   },
-  { name: "group_small", selector: { boolean: {} } },
+  // { name: "group_small", selector: { boolean: {} } },
   // {
   //   type: "grid",
   //   name: "",
