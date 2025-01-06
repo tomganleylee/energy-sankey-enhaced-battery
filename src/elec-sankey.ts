@@ -906,30 +906,12 @@ export class ElecSankey extends LitElement {
     return [divRet, svgRet, bottomLeftY, bottomRightY];
   }
 
-  protected _renderConsumerFlows(
-    y6: number,
-    y7: number,
-    color: string,
-    svgScaleX: number
-  ): [Array<TemplateResult>, Array<TemplateResult>, number] {
-    const divRetArray: Array<TemplateResult> = [];
-    const svgRetArray: Array<TemplateResult> = [];
-    const xLeft = 0;
-    const xRight = 100 - ARROW_HEAD_LENGTH;
-    let i = 0;
-    const total_height = this._consumersFanOutTotalHeight();
-    let yLeft = y6;
-    let yRight = (y6 + y7) / 2 - total_height / 2;
-    if (yRight < TEXT_PADDING) {
-      yRight = TEXT_PADDING;
-    }
-    let svgRow: TemplateResult;
-    let divRow: TemplateResult;
+  private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
     let consumerRoutes: { [id: string]: ElecRoute } = {};
     consumerRoutes = structuredClone(this.consumerRoutes);
     if (this.maxConsumerBranches !== 0) {
       const numConsumerRoutes = Object.keys(consumerRoutes).length;
-      if (numConsumerRoutes > this.maxConsumerBranches - 2) {
+      if (numConsumerRoutes > this.maxConsumerBranches - 1) {
 
         let otherCount = numConsumerRoutes + 2 - this.maxConsumerBranches;
         consumerRoutes = this.consumerRoutes;
@@ -952,6 +934,30 @@ export class ElecSankey extends LitElement {
         consumerRoutes[groupedConsumer.id!] = groupedConsumer;
       }
     }
+    return consumerRoutes;
+  }
+
+  protected _renderConsumerFlows(
+    y6: number,
+    y7: number,
+    color: string,
+    svgScaleX: number
+  ): [Array<TemplateResult>, Array<TemplateResult>, number] {
+    const divRetArray: Array<TemplateResult> = [];
+    const svgRetArray: Array<TemplateResult> = [];
+    const xLeft = 0;
+    const xRight = 100 - ARROW_HEAD_LENGTH;
+    let i = 0;
+    const total_height = this._consumersFanOutTotalHeight();
+    let yLeft = y6;
+    let yRight = (y6 + y7) / 2 - total_height / 2;
+    if (yRight < TEXT_PADDING) {
+      yRight = TEXT_PADDING;
+    }
+    let svgRow: TemplateResult;
+    let divRow: TemplateResult;
+
+    const consumerRoutes = this._getGroupedConsumerRoutes();
 
     for (const key in consumerRoutes) {
       if (Object.prototype.hasOwnProperty.call(consumerRoutes, key)) {
