@@ -279,6 +279,9 @@ export class ElecSankey extends LitElement {
   @property({ attribute: false })
   public consumerRoutes: { [id: string]: ElecRoute } = {};
 
+  @property({ attribute: false })
+  public maxConsumerBranches: number = 0;
+
   private _rateToWidthMultplier: number = 0.2;
 
   private _phantomGridInRoute?: ElecRoute;
@@ -503,6 +506,12 @@ export class ElecSankey extends LitElement {
         count++;
       }
     }
+    if (this.maxConsumerBranches !== 0) {
+      if (count > this.maxConsumerBranches - 2) {
+        count = this.maxConsumerBranches - 2;
+      }
+    }
+
     const untracked = this._untrackedConsumerRoute.rate;
     totalHeight += this._rateToWidth(untracked);
     count++;
@@ -916,8 +925,36 @@ export class ElecSankey extends LitElement {
     }
     let svgRow: TemplateResult;
     let divRow: TemplateResult;
-    for (const key in this.consumerRoutes) {
-      if (Object.prototype.hasOwnProperty.call(this.consumerRoutes, key)) {
+    let consumerRoutes: { [id: string]: ElecRoute } = {};
+    consumerRoutes = structuredClone(this.consumerRoutes);
+    if (this.maxConsumerBranches !== 0) {
+      const numConsumerRoutes = Object.keys(consumerRoutes).length;
+      if (numConsumerRoutes > this.maxConsumerBranches - 2) {
+
+        let otherCount = numConsumerRoutes + 2 - this.maxConsumerBranches;
+        consumerRoutes = this.consumerRoutes;
+        const sortedConsumerRoutes: ElecRoute[]
+          = Object.values(this.consumerRoutes).sort((a, b) => a.rate - b.rate);
+        let groupedConsumer: ElecRoute = {
+          id: "other",
+          text: "Other",
+          rate: 0,
+        };
+        sortedConsumerRoutes.forEach((route) => {
+          if (otherCount > 0) {
+            groupedConsumer.rate += route.rate;
+            if (route.id) {
+              delete consumerRoutes[route.id];
+            }
+            otherCount--;
+          }
+        });
+        consumerRoutes[groupedConsumer.id!] = groupedConsumer;
+      }
+    }
+
+    for (const key in consumerRoutes) {
+      if (Object.prototype.hasOwnProperty.call(consumerRoutes, key)) {
         [divRow, svgRow, yLeft, yRight] = this._renderConsumerFlow(
           xLeft,
           yLeft,
