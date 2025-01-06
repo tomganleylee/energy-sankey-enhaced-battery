@@ -36,6 +36,16 @@ const schema = [
       }
     }
   },
+  {
+    name: "max_consumer_branches",
+    selector: {
+      number: {
+        min: 0,
+        max: 10,
+        mode: "slider",
+      }
+    }
+  }
   // { name: "group_small", selector: { boolean: {} } },
 ];
 
@@ -61,6 +71,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       case "power_from_grid_entity": return "Power from grid";
       case "group_small": return "Group low values together";
       case "generation_entity": return "Power from generation (optional)";
+      case "max_consumer_branches": return "Limit displayed consumer branches (0 for unlimited)";
     }
     console.error("Error name key missing for '" + schema.name + "'")
     return ""
@@ -144,6 +155,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         !== this._config.generation_entity) {
         configValue = "generation_entity";
         value = value.generation_entity;
+      }
+      else if (value.max_consumer_branches
+        !== this._config.max_consumer_branches || -1) {
+        configValue = "max_consumer_branches";
+        value = value.max_consumer_branches;
       }
       else {
         console.warn("unhandled change in <ha-form>");

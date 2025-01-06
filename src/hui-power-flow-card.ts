@@ -219,6 +219,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       delete (config.generation_entity)
     }
 
+    const maxConsumerBranches = this._config.max_consumer_branches || 0;
+
     let gridInRoute: ElecRoute | null = null;
     if (config.power_from_grid_entity) {
       const stateObj = this.hass.states[config.power_from_grid_entity];
@@ -322,6 +324,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             .gridOutRoute=${gridOutRoute || undefined}
             .generationInRoutes=${generationInRoutes}
             .consumerRoutes=${consumerRoutes}
+            .maxConsumerBranches=${maxConsumerBranches}
           ></ha-elec-sankey>
         </div>
       </ha-card>
