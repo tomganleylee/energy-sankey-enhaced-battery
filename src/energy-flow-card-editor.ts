@@ -8,10 +8,38 @@ import { HaFormSchema } from "./utils/form/ha-form";
 import "./ha/panels/lovelace/editor/hui-entities-card-row-editor";
 import { fireEvent } from "./ha/common/dom/fire_event";
 
-import { ENERGY_CARD_EDITOR_NAME } from "./const";
+import { ENERGY_CARD_EDITOR_NAME, GENERIC_LABELS } from "./const";
+import { mdiPalette } from "@mdi/js";
+import setupCustomlocalize from "./localize";
 
+const ENERGY_LABELS = [
+  "hide_small_consumers",
+]
 const schema = [
   { name: "title", selector: { text: {} } },
+
+  {
+    name: "appearance",
+    flatten: true,
+    type: "expandable",
+    iconPath: mdiPalette,
+    schema: [
+      {
+        name: "max_consumer_branches",
+        selector: {
+          number: {
+            min: 0,
+            max: 10,
+            mode: "slider",
+          }
+        }
+      },
+      {
+        name: "hide_small_consumers",
+        selector: { boolean: {} }
+      }
+    ]
+  }
 ];
 
 @customElement(ENERGY_CARD_EDITOR_NAME)
@@ -26,11 +54,16 @@ export class EnergyFlowCardEditor extends LitElement implements LovelaceCardEdit
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
-    switch (schema.name) {
-      case "title": return "Title";
+    const customLocalize = setupCustomlocalize(this.hass!);
+
+    if (GENERIC_LABELS.includes(schema.name)) {
+      return customLocalize(`editor.card.generic.${schema.name}`);
     }
-    console.error("Error name key missing for '" + schema.name + "'")
-    return ""
+    if (ENERGY_LABELS.includes(schema.name)) {
+      return customLocalize(`editor.card.energy_sankey.${schema.name}`);
+    } return this.hass!.localize(
+      `ui.panel.lovelace.editor.card.generic.${schema.name}`
+    );
   };
 
   protected render() {

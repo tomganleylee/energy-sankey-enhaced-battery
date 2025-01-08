@@ -24,7 +24,10 @@ import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/type
 import { EnergyElecFlowCardConfig } from "./types";
 
 import { registerCustomCard } from "./utils/custom-cards";
-import { ENERGY_CARD_EDITOR_NAME } from "./const";
+import {
+  ENERGY_CARD_EDITOR_NAME,
+  HIDE_CONSUMERS_BELOW_THRESHOLD_WH,
+} from "./const";
 
 registerCustomCard({
   type: "hui-energy-elec-flow-card",
@@ -85,6 +88,8 @@ export class HuiEnergyElecFlowCard
     if (!this.hass || !this._config) {
       return nothing;
     }
+    const hideConsumersBelow = this._config.hide_consumers_below
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_WH : 0;
     return html`
       <ha-card>
         ${this._config.title
@@ -101,6 +106,7 @@ export class HuiEnergyElecFlowCard
             .gridOutRoute=${this._gridOutRoute || undefined}
             .generationInRoutes=${this._generationInRoutes || {}}
             .consumerRoutes=${this._consumerRoutes || {}}
+            .hideConsumersBelow=${hideConsumersBelow}
           ></ha-elec-sankey>
         </div>
       </ha-card>

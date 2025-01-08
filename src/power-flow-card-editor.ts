@@ -14,9 +14,17 @@ import type {
   SubElementEditorConfig,
 } from "./ha/panels/lovelace/editor/types";
 
-import { POWER_CARD_EDITOR_NAME } from "./const";
+import { GENERIC_LABELS, POWER_CARD_EDITOR_NAME } from "./const";
 import { EntityConfig, LovelaceRowConfig } from "./ha/panels/lovelace/entity-rows/types";
 import { processEditorEntities } from "./ha/panels/lovelace/editor/process-editor-entities";
+import { mdiPalette } from "@mdi/js";
+import setupCustomlocalize from "./localize";
+
+const POWER_LABELS = [
+  "power_from_grid_entity",
+  "generation_entity",
+  "hide_small_consumers",
+];
 
 const schema = [
   { name: "title", selector: { text: {} } },
@@ -37,16 +45,27 @@ const schema = [
     }
   },
   {
-    name: "max_consumer_branches",
-    selector: {
-      number: {
-        min: 0,
-        max: 10,
-        mode: "slider",
+    name: "appearance",
+    flatten: true,
+    type: "expandable",
+    iconPath: mdiPalette,
+    schema: [
+      {
+        name: "max_consumer_branches",
+        selector: {
+          number: {
+            min: 0,
+            max: 10,
+            mode: "slider",
+          }
+        }
+      },
+      {
+        name: "hide_small_consumers",
+        selector: { boolean: {} }
       }
-    }
+    ]
   }
-  // { name: "group_small", selector: { boolean: {} } },
 ];
 
 @customElement(POWER_CARD_EDITOR_NAME)
@@ -66,15 +85,17 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
-    switch (schema.name) {
-      case "title": return "Title";
-      case "power_from_grid_entity": return "Power from grid";
-      case "group_small": return "Group low values together";
-      case "generation_entity": return "Power from generation (optional)";
-      case "max_consumer_branches": return "Limit displayed consumer branches (0 for unlimited)";
+    const customLocalize = setupCustomlocalize(this.hass!);
+
+    if (GENERIC_LABELS.includes(schema.name)) {
+      return customLocalize(`editor.card.generic.${schema.name}`);
     }
-    console.error("Error name key missing for '" + schema.name + "'")
-    return ""
+    if (POWER_LABELS.includes(schema.name)) {
+      return customLocalize(`editor.card.power_sankey.${schema.name}`);
+    }
+    return this.hass!.localize(
+      `ui.panel.lovelace.editor.card.generic.${schema.name}`
+    );
   };
 
   protected render() {
@@ -157,9 +178,14 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         value = value.generation_entity;
       }
       else if (value.max_consumer_branches
-        !== this._config.max_consumer_branches || -1) {
+        != this._config.max_consumer_branches || 0) {
         configValue = "max_consumer_branches";
         value = value.max_consumer_branches;
+      }
+      else if (value.hide_small_consumers
+        != this._config.hide_small_consumers) {
+        configValue = "hide_small_consumers";
+        value = value.hide_small_consumers;
       }
       else {
         console.warn("unhandled change in <ha-form>");

@@ -282,6 +282,9 @@ export class ElecSankey extends LitElement {
   @property({ attribute: false })
   public maxConsumerBranches: number = 0;
 
+  @property({ attribute: false })
+  public hideConsumersBelow: number = 100;
+
   private _rateToWidthMultplier: number = 0.2;
 
   private _phantomGridInRoute?: ElecRoute;
@@ -909,6 +912,24 @@ export class ElecSankey extends LitElement {
   private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
     let consumerRoutes: { [id: string]: ElecRoute } = {};
     consumerRoutes = structuredClone(this.consumerRoutes);
+
+    let groupedConsumer: ElecRoute = {
+      id: "other",
+      text: "Other",
+      rate: 0,
+    };
+    let groupedConsumerExists = false;
+
+    if (this.hideConsumersBelow > 0) {
+      for (const key in consumerRoutes) {
+        if (consumerRoutes[key].rate < this.hideConsumersBelow) {
+          groupedConsumer.rate += consumerRoutes[key].rate;
+          groupedConsumerExists = true;
+          delete consumerRoutes[key];
+        }
+      }
+    }
+
     if (this.maxConsumerBranches !== 0) {
       const numConsumerRoutes = Object.keys(consumerRoutes).length;
       if (numConsumerRoutes > this.maxConsumerBranches - 1) {
@@ -917,22 +938,20 @@ export class ElecSankey extends LitElement {
         consumerRoutes = this.consumerRoutes;
         const sortedConsumerRoutes: ElecRoute[]
           = Object.values(this.consumerRoutes).sort((a, b) => a.rate - b.rate);
-        let groupedConsumer: ElecRoute = {
-          id: "other",
-          text: "Other",
-          rate: 0,
-        };
         sortedConsumerRoutes.forEach((route) => {
           if (otherCount > 0) {
             groupedConsumer.rate += route.rate;
+            groupedConsumerExists = true;
             if (route.id) {
               delete consumerRoutes[route.id];
             }
             otherCount--;
           }
         });
-        consumerRoutes[groupedConsumer.id!] = groupedConsumer;
       }
+    }
+    if (groupedConsumerExists) {
+      consumerRoutes[groupedConsumer.id!] = groupedConsumer;
     }
     return consumerRoutes;
   }
@@ -966,7 +985,7 @@ export class ElecSankey extends LitElement {
           yLeft,
           xRight,
           yRight,
-          this.consumerRoutes[key],
+          consumerRoutes[key],
           color,
           svgScaleX,
           i++
