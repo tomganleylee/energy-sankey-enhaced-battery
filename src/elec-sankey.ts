@@ -279,6 +279,12 @@ export class ElecSankey extends LitElement {
   @property({ attribute: false })
   public consumerRoutes: { [id: string]: ElecRoute } = {};
 
+  @property({ attribute: false })
+  public maxConsumerBranches: number = 0;
+
+  @property({ attribute: false })
+  public hideConsumersBelow: number = 100;
+
   private _rateToWidthMultplier: number = 0.2;
 
   private _phantomGridInRoute?: ElecRoute;
@@ -503,6 +509,12 @@ export class ElecSankey extends LitElement {
         count++;
       }
     }
+    if (this.maxConsumerBranches !== 0) {
+      if (count > this.maxConsumerBranches - 2) {
+        count = this.maxConsumerBranches - 2;
+      }
+    }
+
     const untracked = this._untrackedConsumerRoute.rate;
     totalHeight += this._rateToWidth(untracked);
     count++;
@@ -897,6 +909,53 @@ export class ElecSankey extends LitElement {
     return [divRet, svgRet, bottomLeftY, bottomRightY];
   }
 
+  private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
+    let consumerRoutes: { [id: string]: ElecRoute } = {};
+    consumerRoutes = structuredClone(this.consumerRoutes);
+
+    let groupedConsumer: ElecRoute = {
+      id: "other",
+      text: "Other",
+      rate: 0,
+    };
+    let groupedConsumerExists = false;
+
+    if (this.hideConsumersBelow > 0) {
+      for (const key in consumerRoutes) {
+        if (consumerRoutes[key].rate < this.hideConsumersBelow) {
+          groupedConsumer.rate += consumerRoutes[key].rate;
+          groupedConsumerExists = true;
+          delete consumerRoutes[key];
+        }
+      }
+    }
+
+    if (this.maxConsumerBranches !== 0) {
+      const numConsumerRoutes = Object.keys(consumerRoutes).length;
+      if (numConsumerRoutes > this.maxConsumerBranches - 1) {
+
+        let otherCount = numConsumerRoutes + 2 - this.maxConsumerBranches;
+        consumerRoutes = this.consumerRoutes;
+        const sortedConsumerRoutes: ElecRoute[]
+          = Object.values(this.consumerRoutes).sort((a, b) => a.rate - b.rate);
+        sortedConsumerRoutes.forEach((route) => {
+          if (otherCount > 0) {
+            groupedConsumer.rate += route.rate;
+            groupedConsumerExists = true;
+            if (route.id) {
+              delete consumerRoutes[route.id];
+            }
+            otherCount--;
+          }
+        });
+      }
+    }
+    if (groupedConsumerExists) {
+      consumerRoutes[groupedConsumer.id!] = groupedConsumer;
+    }
+    return consumerRoutes;
+  }
+
   protected _renderConsumerFlows(
     y6: number,
     y7: number,
@@ -916,14 +975,17 @@ export class ElecSankey extends LitElement {
     }
     let svgRow: TemplateResult;
     let divRow: TemplateResult;
-    for (const key in this.consumerRoutes) {
-      if (Object.prototype.hasOwnProperty.call(this.consumerRoutes, key)) {
+
+    const consumerRoutes = this._getGroupedConsumerRoutes();
+
+    for (const key in consumerRoutes) {
+      if (Object.prototype.hasOwnProperty.call(consumerRoutes, key)) {
         [divRow, svgRow, yLeft, yRight] = this._renderConsumerFlow(
           xLeft,
           yLeft,
           xRight,
           yRight,
-          this.consumerRoutes[key],
+          consumerRoutes[key],
           color,
           svgScaleX,
           i++

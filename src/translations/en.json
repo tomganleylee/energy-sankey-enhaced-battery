@@ -1,0 +1,21 @@
+{
+  "editor": {
+    "card": {
+      "generic": {
+       "title": "Title",
+       "max_consumer_branches": "Limit quantity of consumer branches (0 for unlimited)",
+       "appearance": "Appearance"
+      },
+      "power_sankey": {
+        "power_from_grid_entity": "Power from grid",
+        "group_small": "Group low values together",
+        "generation_entity": "Power from generation (optional)",
+        "hide_small_consumers": "Group consumers below 100W"
+      },
+      "energy_sankey": {
+        "hide_small_consumers": "Group consumers below 0.1kWh"
+      }
+    }
+  }
+}
+

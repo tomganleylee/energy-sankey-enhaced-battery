@@ -25,7 +25,11 @@ import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/dat
 //import "./power-flow-card-editor"
 
 
-import { POWER_CARD_NAME, POWER_CARD_EDITOR_NAME } from "./const";
+import {
+  POWER_CARD_NAME,
+  POWER_CARD_EDITOR_NAME,
+  HIDE_CONSUMERS_BELOW_THRESHOLD_W,
+} from "./const";
 
 registerCustomCard({
   type: "hui-power-flow-card",
@@ -219,6 +223,11 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       delete (config.generation_entity)
     }
 
+    const maxConsumerBranches = this._config.max_consumer_branches || 0;
+
+    const hideConsumersBelow = this._config.hide_small_consumers
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_W : 0;
+
     let gridInRoute: ElecRoute | null = null;
     if (config.power_from_grid_entity) {
       const stateObj = this.hass.states[config.power_from_grid_entity];
@@ -322,6 +331,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             .gridOutRoute=${gridOutRoute || undefined}
             .generationInRoutes=${generationInRoutes}
             .consumerRoutes=${consumerRoutes}
+            .maxConsumerBranches=${maxConsumerBranches}
+            .hideConsumersBelow=${hideConsumersBelow}
           ></ha-elec-sankey>
         </div>
       </ha-card>
