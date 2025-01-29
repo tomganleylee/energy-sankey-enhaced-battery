@@ -38,6 +38,28 @@ registerCustomCard({
 });
 
 
+function computePower(stateObj: HassEntity): number {
+  /**
+   * Returns the power of an entity, scaled to W.
+   */
+  let uom: string | undefined;
+  let state: number = Number(stateObj.state)
+  if (uom = stateObj.attributes.unit_of_measurement) {
+    switch (uom) {
+      case "kW":  {
+        return 1000 * state;
+      }
+      default: {
+        return state;
+      }
+    }
+  }
+  else {
+    return state;
+  }
+
+}
+
 @customElement("hui-power-flow-card")
 class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -245,7 +267,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       gridInRoute = {
         id: config.power_from_grid_entity,
         text: name,
-        rate: Number(stateObj.state),
+        rate: computePower(stateObj),
       };
     }
 
@@ -262,11 +284,10 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
           </hui-warning>
         `;
       }
-      const name = computeStateName(stateObj);
       gridOutRoute = {
         id: config.power_to_grid_entity,
-        text: name,
-        rate: Number(stateObj.state),
+        text: computeStateName(stateObj),
+        rate: computePower(stateObj),
       };
     }
 
@@ -281,11 +302,10 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             </hui-warning>
           `;
         }
-        const name = computeStateName(stateObj);
         generationInRoutes[entity] = {
           id: entity,
-          text: name,
-          rate: Number(stateObj.state),
+          text: computeStateName(stateObj),
+          rate: computePower(stateObj),
           icon: mdiSolarPower,
         };
       }
@@ -310,7 +330,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         consumerRoutes[entity.entity] = {
           id: entity.entity,
           text: name,
-          rate: Number(stateObj.state),
+          rate: computePower(stateObj),
         };
       }
     }
