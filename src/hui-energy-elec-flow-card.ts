@@ -26,7 +26,7 @@ import { EnergyElecFlowCardConfig } from "./types";
 import { registerCustomCard } from "./utils/custom-cards";
 import {
   ENERGY_CARD_EDITOR_NAME,
-  HIDE_CONSUMERS_BELOW_THRESHOLD_WH,
+  HIDE_CONSUMERS_BELOW_THRESHOLD_KWH,
 } from "./const";
 
 registerCustomCard({
@@ -88,8 +88,10 @@ export class HuiEnergyElecFlowCard
     if (!this.hass || !this._config) {
       return nothing;
     }
-    const hideConsumersBelow = this._config.hide_consumers_below
-      ? HIDE_CONSUMERS_BELOW_THRESHOLD_WH : 0;
+
+    const maxConsumerBranches = this._config.max_consumer_branches || 0;
+    const hideConsumersBelow = this._config.hide_small_consumers
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_KWH : 0;
     return html`
       <ha-card>
         ${this._config.title
@@ -106,6 +108,7 @@ export class HuiEnergyElecFlowCard
             .gridOutRoute=${this._gridOutRoute || undefined}
             .generationInRoutes=${this._generationInRoutes || {}}
             .consumerRoutes=${this._consumerRoutes || {}}
+            .maxConsumerBranches=${maxConsumerBranches}
             .hideConsumersBelow=${hideConsumersBelow}
           ></ha-elec-sankey>
         </div>
