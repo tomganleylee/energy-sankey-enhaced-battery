@@ -44,7 +44,7 @@ Outstanding issues to solve:
 - [ ] *Configurable time range is not yet implemented
 
 
-- [ ] Battery storage is not supported yet. That could be added in the future.
+- [ ] Battery storage is not supported yet, see [#16](https://github.com/davet2001/energy-sankey/issues/16).
 
 [license-shield]: https://img.shields.io/github/license/davet2001/homeassistant-energy-sankey-card.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/davet2001/homeassistant-energy-sankey-card?style=for-the-badge
