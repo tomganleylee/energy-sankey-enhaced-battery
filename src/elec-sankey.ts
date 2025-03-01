@@ -495,20 +495,38 @@ export class ElecSankey extends LitElement {
   }
 
   private _batteryOutTotal(): number {
+    /**
+     * Battery rate out of the electrical system (i.e. charging).
+     */
     let total = 0;
     for (const id in this.batteryRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
-        total += this.batteryRoutes[id].out.rate;
+        const inRate = this.batteryRoutes[id].in.rate;
+        const outRate = this.batteryRoutes[id].out.rate;
+        if (outRate > 0) {
+          total += outRate;
+        } else if (outRate < 0) {
+          total -= inRate;
+        }
       }
     }
     return total;
   }
 
   private _batteryInTotal(): number {
+    /**
+     * Battery rate in to the electrical system (i.e. discharging)
+     */
     let total = 0;
     for (const id in this.batteryRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
-        total += this.batteryRoutes[id].in.rate;
+        const inRate = this.batteryRoutes[id].in.rate;
+        const outRate = this.batteryRoutes[id].out.rate;
+        if (inRate > 0) {
+          total += inRate;
+        } else if (outRate < 0) {
+          total -= outRate;
+        }
       }
     }
     return total;
