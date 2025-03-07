@@ -6,8 +6,9 @@ import { classMap } from "lit/directives/class-map.js";
 
 //import "../../../../components/chart/ha-chart-base";
 //import "../../../../components/ha-card";
-import type { ElecRoute } from "./elec-sankey";
+import type { ElecRoute, ElecRoutePair } from "./elec-sankey";
 import {
+  BatterySourceTypeEnergyPreference,
   DeviceConsumptionEnergyPreference, /// done
   EnergyData,
   energySourcesByType,
@@ -51,6 +52,8 @@ export class HuiEnergyElecFlowCard
   @state() private _generationInRoutes: { [id: string]: ElecRoute } = {};
 
   @state() private _consumerRoutes: { [id: string]: ElecRoute } = {};
+
+  @state() private _batteryRoutes: { [id: string]: ElecRoutePair } = {};
 
   protected hassSubscribeRequiredHostProps = ["_config"];
 
@@ -108,6 +111,7 @@ export class HuiEnergyElecFlowCard
             .gridOutRoute=${this._gridOutRoute || undefined}
             .generationInRoutes=${this._generationInRoutes || {}}
             .consumerRoutes=${this._consumerRoutes || {}}
+            .batteryRoutes=${this._batteryRoutes || {}} 
             .maxConsumerBranches=${maxConsumerBranches}
             .hideConsumersBelow=${hideConsumersBelow}
           ></ha-elec-sankey>
@@ -192,6 +196,36 @@ export class HuiEnergyElecFlowCard
         this._consumerRoutes[consumer.stat_consumption].rate = value ?? 0;
       }
     });
+
+    const batteries: BatterySourceTypeEnergyPreference[] = energyData.prefs
+    .energy_sources.filter(
+      (source) => source.type === "battery"
+    ) as BatterySourceTypeEnergyPreference[];
+
+    batteries.forEach((battery) => {
+      const label = getStatisticLabel(
+        this.hass,
+        battery.stat_energy_from,
+        undefined
+      );
+      const inToSystem = calculateStatisticsSumGrowth(energyData.stats, [
+        battery.stat_energy_from,
+      ]);
+      const outOfSystem = calculateStatisticsSumGrowth(energyData.stats, [
+        battery.stat_energy_to,
+      ]);
+      this._batteryRoutes[battery.stat_energy_from] = {
+        in: {
+          id: battery.stat_energy_from,
+          rate: inToSystem ?? 0,
+        },
+        out: {
+          id: battery.stat_energy_to,
+          rate: outOfSystem ?? 0,
+        },
+      }
+    });    
+
   }
 
   static styles = css`
