@@ -1616,8 +1616,6 @@ export class ElecSankey extends LitElement {
           class="tint"/>`
         );
         xA -= widthIn;
-      } else {
-        console.log("Skipping battery in route: " + widthIn);
       }
       if (xA - x15 > 1) {
         svgRetArray.push(
