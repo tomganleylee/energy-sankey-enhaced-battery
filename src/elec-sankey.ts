@@ -588,10 +588,8 @@ export class ElecSankey extends LitElement {
       // could go the grid is going to the grid, the rest goes to consumers.
       if (this._gridExport > batteryInTotal) {
         batteriesToGridTemp = batteryInTotal;
-        generationToGridTemp = this._gridExport - batteryInTotal;
       } else {
         batteriesToGridTemp = this._gridExport;
-        generationToGridTemp = 0;
       }
     }
     // Whatever battery out is not going to the grid must be going to consumers.
@@ -620,6 +618,15 @@ export class ElecSankey extends LitElement {
     // All grid input that is not going to batteries must be going to
     // consumers, so we calculate that next.
     gridToConsumersTemp = gridImport - gridToBatteriesTemp;
+
+    // If we are exporting more than is coming from the batteries, we
+    // must be generating this amount. We don't know whether it is phantom
+    // or real yet.
+    if (this._gridExport > batteryInTotal) {
+      generationToGridTemp = this._gridExport - batteryInTotal;
+    } else {
+      generationToGridTemp = 0;
+    }
 
     // Now that we have generation to grid & generation to batteries, the
     // remaining generation must be going to consumers, so we calculate that.
@@ -677,6 +684,12 @@ export class ElecSankey extends LitElement {
       //   generationTrackedTotal +
       //   phantomGeneration -
       //   (generationToGridTemp + generationToBatteriesTemp);
+    }
+
+    if (this._gridExport > batteryInTotal) {
+      generationToGridTemp = this._gridExport - batteryInTotal;
+    } else {
+      generationToGridTemp = 0;
     }
 
     consumerTotalA =
