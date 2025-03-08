@@ -1535,7 +1535,7 @@ export class ElecSankey extends LitElement {
     const gridColor = this._gridColor();
     const genColor = this._genColor();
 
-    const ratio = x14 - x17 < 1 ? 1 : (x14 - x17) / (x15 - x17);
+    const ratio = x14 - x17 < 1 ? 0 : (x14 - x17) / (x15 - x17);
     const battOutBlendColor = mixHexes(gridColor, genColor, ratio);
     if (this._gridToBatteriesFlowWidth() !== 0) {
       svgRetArray.push(
