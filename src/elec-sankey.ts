@@ -785,10 +785,8 @@ export class ElecSankey extends LitElement {
   }
 
   private _gridOutFlowWidth(): number {
-    if (this.gridOutRoute === undefined || this.gridOutRoute.rate <= 0) {
-      return 0;
-    }
-    return this._rateToWidth(this.gridOutRoute.rate);
+    const rate = this._gridExport;
+    return rate ? this._rateToWidth(rate) : 0;
   }
 
   private _gridToConsumersFlowWidth(): number {
@@ -867,7 +865,7 @@ export class ElecSankey extends LitElement {
     valueB: number | undefined = undefined,
     _valueAColor: string | undefined = undefined,
     _valueBColor: string | undefined = undefined,
-    _displayClass: string | undefined = undefined,
+    _displayClass: string | undefined = undefined
   ): TemplateResult {
     const valueARounded = Math.round(valueA * 10) / 10;
     const valueBRounded = valueB ? Math.round(valueB * 10) / 10 : undefined;
@@ -1051,15 +1049,14 @@ export class ElecSankey extends LitElement {
     }
     return svg`
     <polygon
-      class="grid"
+      class="grid-out-arrow"
       points="${x10},${y10}
       ${x10},${y2}
       ${x10 - arrow_head_length},${(y10 + y2) / 2}"
-      {color ? style="fill:${color};fill-opacity:1" : ""}
+      style="${color ? `fill:${color};fill-opacity:1` : ``}"
     />
   `;
   }
-
   protected renderGenerationToBatteriesFlow(
     x14: number,
     x15: number,
@@ -1112,7 +1109,7 @@ export class ElecSankey extends LitElement {
         rateB,
         undefined,
         undefined,
-        "grid",
+        "grid"
       )}
     </div>`;
 
@@ -1226,7 +1223,7 @@ export class ElecSankey extends LitElement {
       y10,
       this._genColor(),
       endColor,
-      "gen-grid-in-blend-rect"
+      "gen-grid-out-blend-rect"
     );
   }
 
@@ -1251,7 +1248,7 @@ export class ElecSankey extends LitElement {
       y11,
       this._battColor(),
       endColor,
-      "batt-grid-in-blend-rect"
+      "batt-grid-out-blend-rect"
     );
   }
   protected renderGenInBlendFlow(
@@ -1809,7 +1806,7 @@ export class ElecSankey extends LitElement {
         padX,
         widthGenToConsumers,
         padX + widthGenToGrid + widthBatteriesToGrid - widthGenToConsumers,
-        widthGenToGrid * 2 + widthBatteriesToGrid - widthGenToConsumers,
+        widthGenToGrid * 2 + widthBatteriesToGrid - widthGenToConsumers
       );
     const x1: number = midX + width / 2 + padX;
 
