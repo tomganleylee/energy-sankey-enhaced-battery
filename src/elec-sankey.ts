@@ -1542,9 +1542,6 @@ export class ElecSankey extends LitElement {
     // @todo if batteries aren't present, skip.
     const gap = CONSUMERS_FAN_OUT_VERTICAL_GAP / svgScaleX;
     const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
-    // if (false * 1) {
-    //   return nothing;
-    // }
     const gridColor = this._gridColor();
     const genColor = this._genColor();
 
