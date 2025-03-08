@@ -1680,7 +1680,7 @@ export class ElecSankey extends LitElement {
               "",
               batt.out.rate,
               batt.in.rate,
-              battOutBlendColor,
+              batt.out.rate > 0 ? battOutBlendColor : undefined,
               undefined,
               "battery"
             )}
