@@ -867,6 +867,7 @@ export class ElecSankey extends LitElement {
     valueB: number | undefined = undefined,
     _valueAColor: string | undefined = undefined,
     _valueBColor: string | undefined = undefined,
+    _displayClass: string | undefined = undefined,
   ): TemplateResult {
     const valueARounded = Math.round(valueA * 10) / 10;
     const valueBRounded = valueB ? Math.round(valueB * 10) / 10 : undefined;
@@ -1109,7 +1110,10 @@ export class ElecSankey extends LitElement {
         mdiTransmissionTower,
         undefined,
         rateA,
-        rateB
+        rateB,
+        undefined,
+        undefined,
+        "grid",
       )}
     </div>`;
 
@@ -1677,7 +1681,8 @@ export class ElecSankey extends LitElement {
               batt.out.rate,
               batt.in.rate,
               battOutBlendColor,
-              this._battColor(),
+              undefined,
+              "battery"
             )}
           </div>
         </div>`
@@ -2169,7 +2174,7 @@ export class ElecSankey extends LitElement {
         fill: var(--grid-in-color, #920e83);
       }
       path.battery {
-        fill: var(--batt-out-color, #01f4fc);
+        fill: var(--batt-in-color, #01f4fc);
       }
       polygon {
         stroke: none;

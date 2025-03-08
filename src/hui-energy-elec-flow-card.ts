@@ -239,7 +239,7 @@ export class HuiEnergyElecFlowCard
     ha-elec-sankey {
       --generation-color: var(--energy-solar-color);
       --grid-in-color: var(--energy-grid-consumption-color);
-      --battery-in-color: var(--energy-battery-in-color);
+      --batt-in-color: var(--energy-battery-out-color);
     }
   `;
 }
