@@ -193,7 +193,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      * It's not perfect, but even if a partially populated config is a huge
      * help to the user.
      */
-    console.log("-----------getStubConfig()----------");
 
     const energyPrefs = await getEnergyPreferences(_hass);
     const extEntities: { [id: string]: ExtEntityRegistryEntry; }
@@ -212,7 +211,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         case "grid":
           let power_from_grid_entity = "";
           power_from_grid_entity = await this.getPowerEntityIdForEnergyEntityIdWithFail(_hass, source.flow_from[0].stat_energy_from, extEntities);
-          console.log("adding power_from_grid_entity="+power_from_grid_entity);
           returnConfig.power_from_grid_entity = power_from_grid_entity;
           break;
         case "solar":
@@ -228,7 +226,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
           }
           break;
         case "battery":
-          console.log("searching for battery in power entity adjacent to '"+source.stat_energy_from+"'");
           let batteryEntity =""
           batteryEntity = await this.getPowerEntityIdForEnergyEntityId(
             _hass,
@@ -236,7 +233,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             extEntities
           )
           if (batteryEntity) {
-            console.log("adding battery_entity="+batteryEntity);
             returnConfig.battery_entities.push({ entity: batteryEntity });
           }
           break;
