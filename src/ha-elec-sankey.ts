@@ -46,7 +46,7 @@ export class HaElecSankey extends ElecSankey {
     console.log("displayClass: ", displayClass);
     return html`
       <div
-        class="label ${id ? "label-action-clickable2 " : ""}${displayClass}"
+        class="label ${id ? "label-action-clickable " : ""}${displayClass}"
         id=${_id}
         @click=${id ? this._handleMoreInfo : nothing}
       >${_name || nothing} ${icon
