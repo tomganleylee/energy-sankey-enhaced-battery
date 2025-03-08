@@ -77,10 +77,13 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
   @state() private _configConsumerEntities: EntityConfig[] = []
 
+  @state() private _configBatteryEntities: EntityConfig[] = []
+
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = config;
+    this._configBatteryEntities = processEditorEntities(config.battery_entities);
     this._configConsumerEntities = processEditorEntities(config.consumer_entities);
   }
 
@@ -126,6 +129,15 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       ></ha-form>
       <elec-sankey-hui-entities-card-row-editor
         .hass=${this.hass}
+        id="battery-entities"
+        label="Battery Entities (Optional)"
+        .entities=${this._configBatteryEntities}
+        includeDeviceClasses=${["power"]}
+        @entities-changed=${this._valueChanged}
+      ></elec-sankey-hui-entities-card-row-editor>
+      <elec-sankey-hui-entities-card-row-editor
+        .hass=${this.hass}
+        id="consumer-entities"
         label="Consumer Entities (required)"
         .entities=${this._configConsumerEntities}
         includeDeviceClasses=${["power"]}
@@ -206,9 +218,13 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
         this._subElementEditorConfig!.elementConfig = value;
       }
-
-      this._config = { ...this._config!, consumer_entities: newConfigEntities };
-      this._configConsumerEntities = processEditorEntities(this._config!.consumer_entities);
+      if (ev.currentTarget && (ev.currentTarget as any).id === "consumer-entities") {
+        this._config = { ...this._config!, consumer_entities: newConfigEntities };
+        this._configConsumerEntities = processEditorEntities(this._config!.consumer_entities);
+      } else if (ev.currentTarget && (ev.currentTarget as any).id === "battery-entities") {
+        this._config = { ...this._config!, battery_entities: newConfigEntities };
+        this._configBatteryEntities = processEditorEntities(this._config!.battery_entities);
+      }
     } else if (configValue) {
       if (value === "") {
         this._config = { ...this._config };
