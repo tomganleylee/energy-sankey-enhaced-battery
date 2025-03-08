@@ -489,7 +489,7 @@ export class ElecSankey extends LitElement {
     let total = 0;
     for (const id in this.consumerRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.consumerRoutes, id)) {
-        total += this.consumerRoutes[id].rate;
+        total += this.consumerRoutes[id].rate || 0;
       }
     }
     return total;
@@ -502,8 +502,8 @@ export class ElecSankey extends LitElement {
     let total = 0;
     for (const id in this.batteryRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
-        const inRate = this.batteryRoutes[id].in.rate;
-        const outRate = this.batteryRoutes[id].out.rate;
+        const inRate = this.batteryRoutes[id].in.rate || 0;
+        const outRate = this.batteryRoutes[id].out.rate || 0;
         if (outRate > 0) {
           total += outRate;
         } else if (outRate < 0) {
@@ -521,8 +521,8 @@ export class ElecSankey extends LitElement {
     let total = 0;
     for (const id in this.batteryRoutes) {
       if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
-        const inRate = this.batteryRoutes[id].in.rate;
-        const outRate = this.batteryRoutes[id].out.rate;
+        const inRate = this.batteryRoutes[id].in.rate || 0;
+        const outRate = this.batteryRoutes[id].out.rate || 0;
         if (inRate > 0) {
           total += inRate;
         } else if (outRate < 0) {
@@ -883,20 +883,19 @@ export class ElecSankey extends LitElement {
     const valueARounded = Math.round(valueA * 10) / 10;
     const valueBRounded = valueB ? Math.round(valueB * 10) / 10 : undefined;
 
-    return html`
-      <div class="label">
-        <svg x="0" y="0" height=${ICON_SIZE_PX}>
-          <path d=${icon} />
-        </svg>
-        <br />
-        ${valueBRounded
-          ? html`
-              OUT ${valueBRounded} ${this.unit}<br />
-              IN ${valueARounded} ${this.unit}
-            `
-          : html` ${_name}<br />${valueARounded} ${this.unit} `}
-      </div>
-    `;
+    return html`<div class="label">
+      ${icon
+        ? svg`<svg x="0" y="0" height=${ICON_SIZE_PX}>
+              <path d=${icon} />
+            </svg>
+            <br />`
+        : nothing}${valueBRounded
+        ? html`
+            OUT ${valueBRounded} ${this.unit}<br />
+            IN ${valueARounded} ${this.unit}
+          `
+        : html`${_name}<br />${valueARounded} ${this.unit} `}
+    </div> `;
   }
 
   protected _generationToConsumersRadius(): number {
@@ -2159,6 +2158,7 @@ export class ElecSankey extends LitElement {
     .elecroute-label-consumer {
       display: flex;
       align-items: center;
+      text-align: left;
       flex-grow: 0;
       flex-shrink: 0;
       justify-content: left;
