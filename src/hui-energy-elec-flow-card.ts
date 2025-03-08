@@ -177,7 +177,7 @@ export class HuiEnergyElecFlowCard
       .device_consumption as DeviceConsumptionEnergyPreference[];
 
     consumers.forEach((consumer) => {
-      const label = getStatisticLabel(
+      const label = consumer.name || getStatisticLabel(
         this.hass,
         consumer.stat_consumption,
         undefined
