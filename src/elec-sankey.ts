@@ -448,15 +448,15 @@ export class ElecSankey extends LitElement {
 
   private _batteriesToConsumersRate: number = 0;
 
-  private _gridToBatteriesRate = 0;
+  private _gridToBatteriesRate: number = 0;
 
-  private _gridToConsumersRate = 0;
+  private _gridToConsumersRate: number = 0;
 
-  private _generationToBatteriesRate = 0;
+  private _generationToBatteriesRate: number = 0;
 
-  private _generationToGridRate = 0;
+  private _generationToGridRate: number = 0;
 
-  private _generationToConsumersRate = 0;
+  private _generationToConsumersRate: number = 0;
 
   private _generationTrackedTotal(): number {
     let totalGen = 0;
