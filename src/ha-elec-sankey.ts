@@ -36,26 +36,35 @@ export class HaElecSankey extends ElecSankey {
     icon: string | undefined,
     _name: string | undefined,
     valueA: number,
-    valueB: number | undefined
+    valueB: number | undefined,
+    valueAColor: string | undefined = undefined,
+    valueBColor: string | undefined = undefined,
+    displayClass: string | undefined = undefined,
   ): TemplateResult {
     const _id = id || "";
     const numFractionDigits = this.unit === "kWh" ? 1 : 0;
+    console.log("displayClass: ", displayClass);
     return html`
       <div
-        class=${id ? "label label-action-clickable" : "label"}
+        class="label ${id ? "label-action-clickable " : ""}${displayClass}"
         id=${_id}
         @click=${id ? this._handleMoreInfo : nothing}
       >${_name || nothing} ${icon
         ? html`<ha-svg-icon id=${_id} .path=${icon}> </ha-svg-icon>`
         : nothing}${valueB !== undefined
-          ? html`<br /><span class="return" id=${_id}>
+          ? html`<br /><span class="directionleft ${displayClass}" style=${
+              valueBColor
+              ? `color:${valueBColor}`
+              : nothing} id=${_id}>
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowLeft}>
                 </ha-svg-icon
                 >${formatNumber(valueB, this.hass.locale, {
             maximumFractionDigits: numFractionDigits,
           })}&nbsp;${this.unit}</span
               ><br />
-              <span class="consumption" id=${_id}>
+              <span class="directionright ${displayClass}" style=${valueAColor 
+                ? `color:${valueAColor}` 
+                : nothing} id=${_id}>
                 <ha-svg-icon id=${_id} class="small" .path=${mdiArrowRight}>
                 </ha-svg-icon
                 >${formatNumber(valueA, this.hass.locale, {
@@ -89,11 +98,14 @@ export class HaElecSankey extends ElecSankey {
       ha-svg-icon.small {
         --mdc-icon-size: 12px;
       }
-      .consumption {
+      .directionright.grid {
         color: var(--energy-grid-consumption-color);
       }
-      .return {
+      .directionleft.grid {
         color: var(--energy-grid-return-color);
+      }
+      .directionleft.battery {
+        color: var(--energy-battery-out-color);
       }
     `,
   ];

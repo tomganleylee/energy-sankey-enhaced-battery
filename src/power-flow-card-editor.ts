@@ -77,10 +77,13 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
   @state() private _configConsumerEntities: EntityConfig[] = []
 
+  @state() private _configBatteryEntities: EntityConfig[] = []
+
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = config;
+    this._configBatteryEntities = processEditorEntities(config.battery_entities);
     this._configConsumerEntities = processEditorEntities(config.consumer_entities);
   }
 
@@ -102,17 +105,18 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     if (!this.hass || !this._config) {
       return nothing;
     }
-    if (this._subElementEditorConfig) {
-      return html`
-        <hui-sub-element-editor
-          .hass=${this.hass}
-          .config=${this._subElementEditorConfig}
-          @go-back=${this._goBack}
-          @config-changed=${this._handleSubElementChanged}
-        >
-        </hui-sub-element-editor>
-      `;
-    }
+    // Unused feature - may be reinstated if we allow renaming sub-elements.
+    //  if (this._subElementEditorConfig) {
+    //   return html`
+    //     <hui-sub-element-editor
+    //       .hass=${this.hass}
+    //       .config=${this._subElementEditorConfig}
+    //       @go-back=${this._goBack}
+    //       @config-changed=${this._handleSubElementChanged}
+    //     >
+    //     </hui-sub-element-editor>
+    //   `;
+    // }
 
     const data = { ...this._config } as any;
     return html`
@@ -125,6 +129,15 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       ></ha-form>
       <elec-sankey-hui-entities-card-row-editor
         .hass=${this.hass}
+        id="battery-entities"
+        label="Battery Entities (Optional)"
+        .entities=${this._configBatteryEntities}
+        includeDeviceClasses=${["power"]}
+        @entities-changed=${this._valueChanged}
+      ></elec-sankey-hui-entities-card-row-editor>
+      <elec-sankey-hui-entities-card-row-editor
+        .hass=${this.hass}
+        id="consumer-entities"
         label="Consumer Entities (required)"
         .entities=${this._configConsumerEntities}
         includeDeviceClasses=${["power"]}
@@ -205,9 +218,13 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
         this._subElementEditorConfig!.elementConfig = value;
       }
-
-      this._config = { ...this._config!, consumer_entities: newConfigEntities };
-      this._configConsumerEntities = processEditorEntities(this._config!.consumer_entities);
+      if (ev.currentTarget && (ev.currentTarget as any).id === "consumer-entities") {
+        this._config = { ...this._config!, consumer_entities: newConfigEntities };
+        this._configConsumerEntities = processEditorEntities(this._config!.consumer_entities);
+      } else if (ev.currentTarget && (ev.currentTarget as any).id === "battery-entities") {
+        this._config = { ...this._config!, battery_entities: newConfigEntities };
+        this._configBatteryEntities = processEditorEntities(this._config!.battery_entities);
+      }
     } else if (configValue) {
       if (value === "") {
         this._config = { ...this._config };
@@ -222,45 +239,46 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     fireEvent(this, "config-changed", { config: this._config });
   }
 
-  private _handleSubElementChanged(ev: CustomEvent): void {
-    ev.stopPropagation();
-    if (!this._config || !this.hass) {
-      return;
-    }
+  // Unused function which may be reinstated if we allow renaming sub-elements.
+  //  private _handleSubElementChanged(ev: CustomEvent): void {
+  //   ev.stopPropagation();
+  //   if (!this._config || !this.hass) {
+  //     return;
+  //   }
 
-    const configValue = this._subElementEditorConfig?.type;
-    const value = ev.detail.config;
+  //   const configValue = this._subElementEditorConfig?.type;
+  //   const value = ev.detail.config;
 
-    if (configValue === "row") {
-      const newConfigEntities = this._configConsumerEntities!.concat();
-      if (!value) {
-        newConfigEntities.splice(this._subElementEditorConfig!.index!, 1);
-        this._goBack();
-      } else {
-        newConfigEntities[this._subElementEditorConfig!.index!] = value;
-      }
+  //   if (configValue === "row") {
+  //     const newConfigEntities = this._configConsumerEntities!.concat();
+  //     if (!value) {
+  //       newConfigEntities.splice(this._subElementEditorConfig!.index!, 1);
+  //       this._goBack();
+  //     } else {
+  //       newConfigEntities[this._subElementEditorConfig!.index!] = value;
+  //     }
 
-      this._config = { ...this._config!, entities: newConfigEntities };
-      this._configConsumerEntities = processEditorEntities(this._config!.entities);
-    } else if (configValue) {
-      if (value === "") {
-        this._config = { ...this._config };
-        delete this._config[configValue!];
-      } else {
-        this._config = {
-          ...this._config,
-          [configValue]: value,
-        };
-      }
-    }
+  //     this._config = { ...this._config!, entities: newConfigEntities };
+  //     this._configConsumerEntities = processEditorEntities(this._config!.entities);
+  //   } else if (configValue) {
+  //     if (value === "") {
+  //       this._config = { ...this._config };
+  //       delete this._config[configValue!];
+  //     } else {
+  //       this._config = {
+  //         ...this._config,
+  //         [configValue]: value,
+  //       };
+  //     }
+  //   }
 
-    this._subElementEditorConfig = {
-      ...this._subElementEditorConfig!,
-      elementConfig: value,
-    };
+  //   this._subElementEditorConfig = {
+  //     ...this._subElementEditorConfig!,
+  //     elementConfig: value,
+  //   };
 
-    fireEvent(this, "config-changed", { config: this._config });
-  }
+  //   fireEvent(this, "config-changed", { config: this._config });
+  // }
 
   private _editDetailElement(ev: HASSDomEvent<EditDetailElementEvent>): void {
     this._subElementEditorConfig = ev.detail.subElementConfig;

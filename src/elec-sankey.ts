@@ -8,7 +8,12 @@ import {
   svg,
 } from "lit";
 
-import { mdiTransmissionTower, mdiHelpRhombus } from "@mdi/js";
+import {
+  mdiTransmissionTower,
+  mdiHelpRhombus,
+  mdiBatteryCharging,
+  mdiBattery,
+} from "@mdi/js";
 import { customElement, property } from "lit/decorators.js";
 
 /**
@@ -36,16 +41,22 @@ import { customElement, property } from "lit/decorators.js";
  */
 
 const TERMINATOR_BLOCK_LENGTH = 50;
-const GENERATION_FAN_OUT_HORIZONTAL_GAP = 80;
+const GENERATION_FAN_OUT_HORIZONTAL_GAP = 50;
 const CONSUMERS_FAN_OUT_VERTICAL_GAP = 90;
 const CONSUMER_LABEL_HEIGHT = 50;
 const TARGET_SCALED_TRUNK_WIDTH = 90;
+const PAD_MULTIPLIER = 1.8;
 
 const GEN_COLOR = "#0d6a04";
 const GRID_IN_COLOR = "#920e83";
+const BATT_IN_COLOR = "#01f4fc";
 
-const BLEND_LENGTH = 80;
-const BLEND_LENGTH_PRE_FAN_OUT = 20;
+// The below two lengths must add up to 100.
+const CONSUMER_BLEND_LENGTH = 80;
+const CONSUMER_BLEND_LENGTH_PRE_FAN_OUT = 20;
+
+const GRID_BLEND_LENGTH = 30;
+const BATTERY_BLEND_LENGTH = 30;
 
 const ARROW_HEAD_LENGTH = 10;
 const TEXT_PADDING = 8;
@@ -63,6 +74,18 @@ export interface ElecRoute {
   text?: string;
   rate: number;
   icon?: string;
+}
+
+export interface ElecRoutePair {
+  in: ElecRoute;
+  out: ElecRoute;
+}
+
+function debugPoint(x: number, y: number, label: string): TemplateResult {
+  return svg`
+    <circle cx="${x}" cy="${y}" r="3" fill="#22DDDD" />
+    <text x="${x - 13}" y="${y - 6}" font-size="10px">${label}</text>
+`;
 }
 
 // Color mixing from here: https://stackoverflow.com/a/76752232
@@ -93,7 +116,29 @@ export function mixHexes(hex1: string, hex2: string, ratio: number = 0.5) {
   const b = Math.round(b1 * ratio + b2 * (1 - ratio));
   return rgb2hex(r, g, b);
 }
-// End of color mixing code.
+// End of color mixing code from SO.
+
+export function mix3Hexes(
+  hex1: string,
+  hex2: string,
+  hex3: string,
+  ratio1: number,
+  ratio2: number,
+  ratio3: number
+) {
+  [ratio1, ratio2, ratio3].forEach((ratio) => {
+    if (ratio > 1.0 || ratio < 0) {
+      throw new Error("Invalid ratio: " + ratio);
+    }
+  });
+  const [r1, g1, b1] = hex2dec(hex1);
+  const [r2, g2, b2] = hex2dec(hex2);
+  const [r3, g3, b3] = hex2dec(hex3);
+  const r = Math.round(r1 * ratio1 + r2 * ratio2 + r3 * ratio3);
+  const g = Math.round(g1 * ratio1 + g2 * ratio2 + g3 * ratio3);
+  const b = Math.round(b1 * ratio1 + b2 * ratio2 + b3 * ratio3);
+  return rgb2hex(r, g, b);
+}
 
 /**
  * Calculates the intersection point of two lines defined by their endpoints.
@@ -224,6 +269,92 @@ function renderFlowByCorners(
   return svg_ret;
 }
 
+function renderRect(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  classname: string,
+  color: string | null = null
+): TemplateResult {
+  return svg`
+  <rect
+  class=${classname}
+  x="${x}"
+  y="${y}"
+  height="${height}"
+  width="${width}"
+  {color ? style="fill:${color};fill-opacity:1" : ""}
+  />`;
+}
+
+/**
+ * Generic render for rects where flow blends from one colour to another.
+ */
+function renderBlendRect(
+  startLX: number,
+  startLY: number,
+  startRX: number,
+  startRY: number,
+  endLX: number,
+  endLY: number,
+  endRX: number,
+  endRY: number,
+  startColor: string,
+  endColor: string,
+  id: string
+): TemplateResult | symbol {
+  if (
+    !(
+      (startLX == startRX && endLX == endRX) ||
+      (startLY == startRY && endLY == endRY)
+    )
+  ) {
+    console.error(
+      "Unsupported blend flow dimensions - only horiz/vert are implemented."
+    );
+    return nothing;
+  }
+  const horizontal: boolean = startLX == startRX;
+  let height, width;
+  let x1, y1, x2, y2;
+  if (horizontal) {
+    height = Math.abs(startLY - startRY);
+    width = Math.abs(startLX - endLX);
+    y1 = "0%";
+    y2 = "0%";
+    x1 = startLX < endLX ? "0%" : "100%"; // Left to right.
+    x2 = startLX < endLX ? "100%" : "0%"; // Rigth to left.
+  } else {
+    height = Math.abs(startLY - endLY);
+    width = Math.abs(startLX - startRX);
+    x1 = "0%";
+    x2 = "0%";
+    y1 = startLY < endLY ? "0%" : "100%"; // Top to bottom.
+    y2 = startLY < endLY ? "100%" : "0%"; // Bottom to top.
+  }
+  const topLeftX = Math.min(startLX, startRX, endLX, endRX);
+  const topLeftY = Math.min(startLY, startRY, endLY, endRY);
+  const svgRet = svg`
+    <defs>
+      <linearGradient id="${id}_grad" x1=${x1} y1=${y1} x2=${x2} y2=${y2}>
+        <stop offset="0%" style="stop-color:${startColor};stop-opacity:1" />
+        <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <rect
+      id="${id}"
+      x="${topLeftX}"
+      y="${topLeftY}"
+      height="${height}"
+      width="${width}"
+      fill="url(#${id}_grad)"
+      style="fill-opacity:1"
+    />
+  `;
+  return svgRet;
+}
+
 /**
  * Creates a flow map graphic showing the flow of electricity.
  *
@@ -256,10 +387,21 @@ function renderFlowByCorners(
  * `;
  * }
  * ${debugPoint(x0, y0, "x0,y0")}
- * ${debugPoint(x1, y1, "x1,y1")} ${debugPoint(x2, y2, "x2,y2")}
- * ${debugPoint(x3, y3, "x3,y3")} ${debugPoint(x4, y4, "x4,y4")}
- * ${debugPoint(x5, y5, "x5,y5")} ${debugPoint(x6, y6, "x6,y6")}
- * ${debugPoint(x7, y7, "x7,y7")} ${debugPoint(x10, y10, "x10,y10")}
+*  ${debugPoint(x1 - 20, y1, "x1,y1")}
+*  ${debugPoint(x2 - 20, y2, "x2,y2")}
+*  ${debugPoint(x10, y10, "x10,y10")}
+*  ${debugPoint(x1 - 20, y5, "x1,y5")}
+*  ${debugPoint(x1 - 20, y4, "x1,y4")}
+*  ${debugPoint(x14, y0, "x14,y0")} ${debugPoint(x15, y0, "x15,y0")}
+*  ${debugPoint(x16, y0, "x16,y0")} ${debugPoint(x10, y2, "x10,y2")}
+*  ${debugPoint(x10, y11, "x10,y11")}
+*  ${debugPoint(x10, y5, "x10,y5")}
+*  ${debugPoint(x10, y13, "x10,y13")}
+*  ${debugPoint(x17, y17, "x17,y17")}
+*  ${debugPoint(x14, y17, "x14,y17")}
+*  ${debugPoint(x15, y17, "x15,y17")}
+*  ${debugPoint(x20, y17, "x20,y17")}
+*  ${debugPoint(x21, y17, "x21,y17")}
  */
 
 @customElement("elec-sankey")
@@ -280,10 +422,13 @@ export class ElecSankey extends LitElement {
   public consumerRoutes: { [id: string]: ElecRoute } = {};
 
   @property({ attribute: false })
+  public batteryRoutes: { [id: string]: ElecRoutePair } = {};
+
+  @property({ attribute: false })
   public maxConsumerBranches: number = 0;
 
   @property({ attribute: false })
-  public hideConsumersBelow: number = 100;
+  public hideConsumersBelow: number = 0;
 
   private _rateToWidthMultplier: number = 0.2;
 
@@ -296,6 +441,22 @@ export class ElecSankey extends LitElement {
     text: "Untracked",
     rate: 0,
   };
+
+  private _gridExport: number = 0;
+
+  private _batteriesToGridRate: number = 0;
+
+  private _batteriesToConsumersRate: number = 0;
+
+  private _gridToBatteriesRate: number = 0;
+
+  private _gridToConsumersRate: number = 0;
+
+  private _generationToBatteriesRate: number = 0;
+
+  private _generationToGridRate: number = 0;
+
+  private _generationToConsumersRate: number = 0;
 
   private _generationTrackedTotal(): number {
     let totalGen = 0;
@@ -324,16 +485,6 @@ export class ElecSankey extends LitElement {
     return 0;
   }
 
-  private _gridExport(): number {
-    if (this.gridOutRoute) {
-      return this.gridOutRoute.rate > 0 ? this.gridOutRoute.rate : 0;
-    }
-    if (this.gridInRoute) {
-      return this.gridInRoute.rate < 0 ? -this.gridInRoute.rate : 0;
-    }
-    return 0;
-  }
-
   private _consumerTrackedTotal(): number {
     let total = 0;
     for (const id in this.consumerRoutes) {
@@ -344,74 +495,250 @@ export class ElecSankey extends LitElement {
     return total;
   }
 
+  private _batteryOutTotal(): number {
+    /**
+     * Battery rate out of the electrical system (i.e. charging).
+     */
+    let total = 0;
+    for (const id in this.batteryRoutes) {
+      if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
+        const inRate = this.batteryRoutes[id].in.rate;
+        const outRate = this.batteryRoutes[id].out.rate;
+        if (outRate > 0) {
+          total += outRate;
+        } else if (outRate < 0) {
+          total -= inRate;
+        }
+      }
+    }
+    return total;
+  }
+
+  private _batteryInTotal(): number {
+    /**
+     * Battery rate in to the electrical system (i.e. discharging)
+     */
+    let total = 0;
+    for (const id in this.batteryRoutes) {
+      if (Object.prototype.hasOwnProperty.call(this.batteryRoutes, id)) {
+        const inRate = this.batteryRoutes[id].in.rate;
+        const outRate = this.batteryRoutes[id].out.rate;
+        if (inRate > 0) {
+          total += inRate;
+        } else if (outRate < 0) {
+          total -= outRate;
+        }
+      }
+    }
+    return total;
+  }
+
   private _recalculate() {
+    /**
+     * Note that it is not 100% possible to fully determine the actual flow of
+     * electrons in all secenarios.
+     *
+     * The goal of this strategy is to present a viable diagram given the
+     * input data, with a leaning in specific directions where there is
+     * uncertainty. The most complex version is for energy flow, which can
+     * accumulate in both directions for certain flows (grid, batteries etc).
+     * The calculation is based on energy. Power flow is a simpler case, with
+     * each flow only possible to be in or out (not both), but they are both
+     * calculated using the same algorithm, documented inline below.
+     */
     const gridImport = this._gridImport();
-    const gridExport = this._gridExport();
+
+    // Determine the grid import and export
+    if (this.gridOutRoute) {
+      this._gridExport =
+        this.gridOutRoute.rate > 0 ? this.gridOutRoute.rate : 0;
+    } else if (this.gridInRoute) {
+      this._gridExport = this.gridInRoute.rate < 0 ? -this.gridInRoute.rate : 0;
+    } else {
+      this._gridExport = 0;
+    }
+
     const generationTrackedTotal = this._generationTrackedTotal();
     const consumerTrackedTotal = this._consumerTrackedTotal();
+    const batteryInTotal = this._batteryInTotal();
+    const batteriesOutTotal = this._batteryOutTotal();
 
     // Balance the books.
     let phantomGridIn = 0;
     let phantomGeneration = 0;
     let untrackedConsumer = 0;
+    let batteriesToGridTemp = 0;
+    let generationToGridTemp = 0;
+    let gridToBatteriesTemp = 0;
+    let generationToBatteriesTemp = 0;
+    let gridToConsumersTemp = 0;
+    // Check if we are exporting more than we are generating plus flowing from
+    // batteries.
+    let x = this._gridExport - generationTrackedTotal - batteryInTotal;
+    if (x > 0) {
+      // If this is the case, we create a phantom generation source
+      // of sufficient value to balance thie equation, and assume that all
+      // battery power is going to the grid.
+      phantomGeneration = x;
+      batteriesToGridTemp = batteryInTotal;
+    } else {
+      // If we aren't exporting more than generating + discharging, the diagram
+      // is provisionally viable without a phantom generation source.
+      // *For now* we assume the maximum possible split of battery rate that
+      // could go the grid is going to the grid, the rest goes to consumers.
+      if (this._gridExport > batteryInTotal) {
+        batteriesToGridTemp = batteryInTotal;
+      } else {
+        batteriesToGridTemp = this._gridExport;
+      }
+    }
+    // Whatever battery out is not going to the grid must be going to consumers.
+    let batteriesToConsumersTemp = batteryInTotal - batteriesToGridTemp;
 
-    // First check if we are exporting more than we are generating.
-    let x = gridExport - generationTrackedTotal;
+    // We then proceed on the basis that the full flow into the battery is
+    // coming from the grid (as far as the grid input allows). If there is
+    // more flow coming into the batteries than the grid would allow, we
+    // assume that the additional flow is coming from generation.
+    if (gridImport > batteriesOutTotal) {
+      gridToBatteriesTemp = batteriesOutTotal;
+    } else {
+      gridToBatteriesTemp = gridImport;
+      generationToBatteriesTemp = batteriesOutTotal - gridToBatteriesTemp;
+    }
+    // If we have exceeded the total generation by doing this, we must
+    // recalculate the phantom generation source.
+    x =
+      this._gridExport +
+      generationToBatteriesTemp -
+      (generationTrackedTotal + gridToBatteriesTemp);
     if (x > 0) {
       phantomGeneration = x;
     }
-    // Do we have an excess of consumption?
+
+    // All grid input that is not going to batteries must be going to
+    // consumers, so we calculate that next.
+    gridToConsumersTemp = gridImport - gridToBatteriesTemp;
+
+    // If we are exporting more than is coming from the batteries, we
+    // must be generating this amount. We don't know whether it is phantom
+    // or real yet.
+    if (this._gridExport > batteryInTotal) {
+      generationToGridTemp = this._gridExport - batteryInTotal;
+    } else {
+      generationToGridTemp = 0;
+    }
+
+    // Now that we have generation to grid & generation to batteries, the
+    // remaining generation must be going to consumers, so we calculate that.
+    let generationToConsumersTemp =
+      generationTrackedTotal - generationToGridTemp - generationToBatteriesTemp;
+
+    // Clip negative values.
+    if (generationToConsumersTemp < 0) {
+      generationToConsumersTemp = 0;
+    }
+    // If the generation to (grid + batteries + consumers) is more than
+    // the total generation, we need to recalulate the phantom generation
+    // source.
     x =
-      consumerTrackedTotal -
-      gridImport -
-      generationTrackedTotal -
-      phantomGeneration;
+      generationToGridTemp +
+      generationToBatteriesTemp +
+      generationToConsumersTemp -
+      generationTrackedTotal;
+    if (x > 0) {
+      phantomGeneration = x;
+    }
+
+    // The three items add together to give the consumer total.
+    let consumerTotalA =
+      generationToConsumersTemp +
+      gridToConsumersTemp +
+      batteriesToConsumersTemp;
+
+    // Do we have an excess of consumption?
+    x = consumerTrackedTotal - consumerTotalA;
     if (x > 0) {
       // There is an unknown energy source.
       if (this.gridInRoute === undefined && this.gridOutRoute === undefined) {
         // If we aren't tracking grid sources, create a phantom one.
         phantomGridIn = x;
+        gridToConsumersTemp = x;
+        consumerTotalA =
+          generationToConsumersTemp +
+          gridToConsumersTemp +
+          batteriesToConsumersTemp;
       }
     }
-    // Retry balance - are we consuming more than we are generating/importing?
+
+    // If the generation to (grid + batteries + consumers) is more than
+    // the total generation, we need to recalulate the phantom generation
+    // source again
     x =
-      consumerTrackedTotal -
-      gridImport -
-      phantomGridIn -
-      phantomGeneration -
-      (generationTrackedTotal - gridExport);
+      generationToGridTemp +
+      generationToBatteriesTemp +
+      generationToConsumersTemp -
+      generationTrackedTotal;
     if (x > 0) {
-      // We must have an unknown generation source
-      phantomGeneration += x;
+      phantomGeneration = x;
+      // generationToConsumersTemp =
+      //   generationTrackedTotal +
+      //   phantomGeneration -
+      //   (generationToGridTemp + generationToBatteriesTemp);
     }
 
-    x =
-      consumerTrackedTotal -
-      gridImport -
-      phantomGridIn -
-      (generationTrackedTotal + phantomGeneration - gridExport);
-    if (x < 0) {
-      // There is an untracked energy consumer.
-      untrackedConsumer = -x;
+    if (this._gridExport > batteryInTotal) {
+      generationToGridTemp = this._gridExport - batteryInTotal;
+    } else {
+      generationToGridTemp = 0;
+    }
+
+    consumerTotalA =
+      generationToConsumersTemp +
+      gridToConsumersTemp +
+      batteriesToConsumersTemp;
+
+    // If we are still sending more to consumers than we are tracking, we must
+    // have untracked consumers (which will almost always be the case).
+    x = consumerTotalA - consumerTrackedTotal;
+    if (x > 0) {
+      // In this case, calculate the size of the untracked consumer.
+      untrackedConsumer = x;
+    } else {
+      // Conversely, if we are consuming more than we are sending to consumers,
+      // we have not balanced the books - there must be more generation, so add
+      // add to the generationToConsumers flow path.
+      generationToConsumersTemp += -x;
+      // ... and recalculate the phantom generation.
+      phantomGeneration =
+        generationToConsumersTemp +
+        generationToBatteriesTemp +
+        generationToGridTemp -
+        generationTrackedTotal;
     }
 
     this._phantomGridInRoute =
       phantomGridIn > 0
         ? {
-          text: "Unknown source",
-          icon: mdiHelpRhombus,
-          rate: phantomGridIn,
-        }
+            text: "Unknown source",
+            icon: mdiHelpRhombus,
+            rate: phantomGridIn,
+          }
         : undefined;
     this._phantomGenerationInRoute =
       phantomGeneration > 0
         ? {
-          text: "Unknown source",
-          icon: mdiHelpRhombus,
-          rate: phantomGeneration,
-        }
+            text: "Unknown source",
+            icon: mdiHelpRhombus,
+            rate: phantomGeneration,
+          }
         : undefined;
-    this._untrackedConsumerRoute.rate = untrackedConsumer;
+    if (untrackedConsumer > 0) {
+      this._untrackedConsumerRoute = {
+        id: "untracked",
+        text: "Untracked",
+        rate: untrackedConsumer,
+      };
+    }
 
     /**
      * Calculate and update a scaling factor to make the UI look sensible.
@@ -419,11 +746,7 @@ export class ElecSankey extends LitElement {
      * needs to be dynamic. This function calculates the scaling factor based
      * on a sensible maximum 'trunk' width.
      */
-    const genTotal =
-      generationTrackedTotal +
-      (this._phantomGenerationInRoute
-        ? this._phantomGenerationInRoute.rate
-        : 0);
+    const genTotal = generationTrackedTotal + phantomGeneration;
     const gridInTotal =
       gridImport +
       (this._phantomGridInRoute ? this._phantomGridInRoute.rate : 0);
@@ -431,17 +754,18 @@ export class ElecSankey extends LitElement {
       consumerTrackedTotal +
       (this._untrackedConsumerRoute ? this._untrackedConsumerRoute.rate : 0);
 
+    this._batteriesToGridRate = batteriesToGridTemp;
+    this._batteriesToConsumersRate = batteriesToConsumersTemp;
+
+    this._generationToConsumersRate = generationToConsumersTemp;
+    this._generationToBatteriesRate = generationToBatteriesTemp;
+    this._generationToGridRate = generationToGridTemp;
+
+    this._gridToBatteriesRate = gridToBatteriesTemp;
+    this._gridToConsumersRate = gridToConsumersTemp;
+
     const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 1.0);
     this._rateToWidthMultplier = TARGET_SCALED_TRUNK_WIDTH / widest_trunk;
-  }
-
-  private _generationToConsumers(): number {
-    // @todo if we support batteries in the future, need to modify this.
-    const genToGrid = this._gridExport();
-    if (genToGrid > 0) {
-      return this._generationTotal() - genToGrid;
-    }
-    return this._generationTotal();
   }
 
   private _rateToWidth(rate: number): number {
@@ -450,7 +774,7 @@ export class ElecSankey extends LitElement {
   }
 
   private _generationInFlowWidth(): number {
-    const total = this._generationTrackedTotal() + this._generationPhantom()
+    const total = this._generationTrackedTotal() + this._generationPhantom();
     if (total === 0) {
       return 0;
     }
@@ -458,46 +782,49 @@ export class ElecSankey extends LitElement {
   }
 
   private _generationToConsumersFlowWidth(): number {
-    if (this._generationToConsumers() == 0 && !this.generationInRoutes.length) {
+    if (
+      this._generationToConsumersRate == 0 &&
+      !this.generationInRoutes.length
+    ) {
       return 0;
     }
-    return this._rateToWidth(this._generationToConsumers());
+    const rate = this._generationToConsumersRate;
+    return rate ? this._rateToWidth(rate) : 0;
   }
 
   private _generationToGridFlowWidth(): number {
-    if (this._gridExport() <= 0) {
-      return 0;
-    }
-    if (this.gridOutRoute) {
-      return this._rateToWidth(this._gridExport());
-    }
-    if (!this.gridInRoute) {
-      return 0;
-    }
-    if (this.gridInRoute.rate > 0) {
-      return 0;
-    }
-    return this._rateToWidth(-this.gridInRoute.rate);
-  }
-
-  private _gridInFlowWidth(): number {
-    if (this.gridInRoute === undefined) {
-      return 0;
-    }
-    if (this.gridInRoute.rate > 0) {
-      return this._rateToWidth(this.gridInRoute.rate);
-    }
-    return 0;
+    const rate = this._generationToGridRate;
+    return rate ? this._rateToWidth(rate) : 0;
   }
 
   private _gridOutFlowWidth(): number {
-    if (this.gridOutRoute === undefined) {
-      return 0;
-    }
-    if (this.gridOutRoute.rate > 0) {
-      return this._rateToWidth(this.gridOutRoute.rate);
-    }
-    return 0;
+    const rate = this._gridExport;
+    return rate ? this._rateToWidth(rate) : 0;
+  }
+
+  private _gridToConsumersFlowWidth(): number {
+    const rate = this._gridToConsumersRate;
+    return rate ? this._rateToWidth(rate) : 0;
+  }
+
+  private _batteriesToGridFlowWidth(): number {
+    const rate = this._batteriesToGridRate;
+    return rate ? this._rateToWidth(rate) : 0;
+  }
+
+  private _batteryToConsumersFlowWidth(): number {
+    const rate = this._batteriesToConsumersRate;
+    return rate ? this._rateToWidth(rate) : 0;
+  }
+
+  private _generationToBatteryFlowWidth(): number {
+    const rate = this._generationToBatteriesRate;
+    return rate ? this._rateToWidth(rate) : 0;
+  }
+
+  private _gridToBatteriesFlowWidth(): number {
+    const rate = this._gridToBatteriesRate;
+    return rate ? this._rateToWidth(rate) : 0;
   }
 
   private _consumersFanOutTotalHeight(): number {
@@ -537,12 +864,21 @@ export class ElecSankey extends LitElement {
     return ret || GRID_IN_COLOR;
   }
 
+  private _battColor(): string {
+    const computedStyles = getComputedStyle(this);
+    const ret = computedStyles.getPropertyValue("--batt-in-color").trim();
+    return ret || BATT_IN_COLOR;
+  }
+
   protected _generateLabelDiv(
     _id: string | undefined,
     icon: string | undefined,
     _name: string | undefined,
     valueA: number,
-    valueB: number | undefined = undefined
+    valueB: number | undefined = undefined,
+    _valueAColor: string | undefined = undefined,
+    _valueBColor: string | undefined = undefined,
+    _displayClass: string | undefined = undefined
   ): TemplateResult {
     const valueARounded = Math.round(valueA * 10) / 10;
     const valueBRounded = valueB ? Math.round(valueB * 10) / 10 : undefined;
@@ -554,11 +890,11 @@ export class ElecSankey extends LitElement {
         </svg>
         <br />
         ${valueBRounded
-        ? html`
+          ? html`
               OUT ${valueBRounded} ${this.unit}<br />
               IN ${valueARounded} ${this.unit}
             `
-        : html` ${_name}<br />${valueARounded} ${this.unit} `}
+          : html` ${_name}<br />${valueARounded} ${this.unit} `}
       </div>
     `;
   }
@@ -569,25 +905,26 @@ export class ElecSankey extends LitElement {
 
   protected renderGenerationToConsumersFlow(
     x0: number,
+    y0: number,
+    x15: number,
+    x16: number,
     x1: number,
     y1: number,
-    x2: number,
     y2: number,
     svgScaleX: number = 1
   ): [TemplateResult[] | symbol[], TemplateResult | symbol] {
     const totalGenWidth = this._generationInFlowWidth();
     const genToConsWidth = this._generationToConsumersFlowWidth();
-
-    if ((totalGenWidth === 0) && !Object.keys(this.generationInRoutes)) {
+    const genFanOutGap = GENERATION_FAN_OUT_HORIZONTAL_GAP / svgScaleX;
+    if (genToConsWidth === 0 && !Object.keys(this.generationInRoutes)) {
       return [[nothing], nothing];
     }
     const count =
       Object.keys(this.generationInRoutes).length +
       (this._phantomGenerationInRoute !== undefined ? 1 : 0);
-    const fanOutWidth =
-      totalGenWidth + (count - 1) * GENERATION_FAN_OUT_HORIZONTAL_GAP;
-    let xA = GEN_ORIGIN_X - fanOutWidth / 2;
-    let xB = GEN_ORIGIN_X - totalGenWidth / 2;
+    const fanOutWidth = totalGenWidth + (count - 1) * genFanOutGap;
+    let xA = x0 + totalGenWidth / 2 - fanOutWidth / 2;
+    let xB = x0;
     const svgArray: TemplateResult[] = [];
     const divArray: TemplateResult[] = [];
 
@@ -642,14 +979,14 @@ export class ElecSankey extends LitElement {
               class="label elecroute-label-horiz"
               style="left: ${midX * svgScaleX -
               (i * LABEL_WIDTH) /
-              2}px; flex-basis: ${LABEL_WIDTH}px; margin: 0 0 0 ${-LABEL_WIDTH /
+                2}px; flex-basis: ${LABEL_WIDTH}px; margin: 0 0 0 ${-LABEL_WIDTH /
               2}px;"
             >
               ${this._generateLabelDiv(id, icon, undefined, rate)}
             </div>`
           );
         }
-        xA += width + GENERATION_FAN_OUT_HORIZONTAL_GAP;
+        xA += width + genFanOutGap;
         xB += width;
       }
       i++;
@@ -658,16 +995,16 @@ export class ElecSankey extends LitElement {
     const generatedFlowPath2 =
       genToConsWidth > 0
         ? renderFlowByCorners(
-          x0 + totalGenWidth,
-          TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
-          x0 + totalGenWidth - genToConsWidth,
-          TERMINATOR_BLOCK_LENGTH - PAD_ANTIALIAS,
-          x1,
-          y1,
-          x2,
-          y2,
-          "generation"
-        )
+            x16,
+            y0 - PAD_ANTIALIAS,
+            x15,
+            y0 - PAD_ANTIALIAS,
+            x1,
+            y1,
+            x1,
+            y2,
+            "generation"
+          )
         : svg``;
     const svgRet = svg`
     ${svgArray}
@@ -679,9 +1016,11 @@ export class ElecSankey extends LitElement {
   protected renderGenerationToGridFlow(
     x0: number,
     y0: number,
-    x10: number,
-    y10: number
+    x11: number,
+    y10: number,
+    svgScaleX: number
   ): TemplateResult {
+    const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
     const width = this._generationToGridFlowWidth();
     if (width === 0) {
       return svg``;
@@ -691,50 +1030,83 @@ export class ElecSankey extends LitElement {
       y0,
       x0,
       y0,
-      x10,
+      x11,
       y10 + width,
-      x10,
+      x11,
       y10,
       "generation"
     );
 
     return svg`
     ${generatedFlowPath}
-    <rect
-      class="generation"
-      x=${ARROW_HEAD_LENGTH}
-      y="${y10}"
-      height="${width}"
-      width="${x10 - ARROW_HEAD_LENGTH}"
-    />
-    <polygon
-      class="generation"
-      points="${ARROW_HEAD_LENGTH},${y10}
-      ${ARROW_HEAD_LENGTH},${y10 + width}
-      0,${y10 + width / 2}"
-      />
+    ${renderRect(
+      arrow_head_length,
+      y10,
+      x11 - arrow_head_length,
+      width,
+      "generation"
+    )}
   `;
   }
 
+  protected renderGridOutFlowArrow(
+    x10: number,
+    y10: number,
+    y2: number,
+    svgScaleX: number,
+    color: string
+  ): TemplateResult | symbol {
+    const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
+    if (this._gridOutFlowWidth() === 0) {
+      return nothing;
+    }
+    return svg`
+    <polygon
+      class="grid-out-arrow"
+      points="${x10},${y10}
+      ${x10},${y2}
+      ${x10 - arrow_head_length},${(y10 + y2) / 2}"
+      style="${color ? `fill:${color};fill-opacity:1` : ``}"
+    />
+  `;
+  }
+  protected renderGenerationToBatteriesFlow(
+    x14: number,
+    x15: number,
+    y0: number,
+    y17: number
+  ): TemplateResult | symbol {
+    if (this._generationToBatteryFlowWidth() === 0) {
+      return nothing;
+    }
+
+    return svg`
+    <rect
+      class="generation"
+      x="${x14}"
+      y="${y0}"
+      height="${y17 - y0}"
+      width="${x15 - x14}"
+    />
+    `;
+  }
+
   protected renderGridInFlow(
-    topRightX: number,
-    topRightY: number,
+    y2: number,
+    y13: number,
+    y10: number,
     svgScaleX: number = 1
   ): [TemplateResult | symbol, TemplateResult | symbol] {
     if (!this.gridInRoute) {
       return [nothing, nothing];
     }
-    const in_width = this._gridInFlowWidth();
-    const tot_width = this._gridInFlowWidth() + this._gridOutFlowWidth();
+    const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
+    const in_width = y13 - y2;
 
-    const startTerminatorX = 0;
-    const startTerminatorY = topRightY;
-
-    const x_width = topRightX;
     const rateA = this._gridImport();
-    const rateB = this._gridExport();
+    const rateB = this._gridExport;
 
-    const midY = startTerminatorY - this._gridOutFlowWidth() + tot_width / 2;
+    const midY = (y10 + y13) / 2;
     const divHeight = ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 2;
     const divRet = html`<div
       width=${ICON_SIZE_PX * 2}
@@ -743,94 +1115,234 @@ export class ElecSankey extends LitElement {
       top: ${midY * svgScaleX}px; margin: ${-divHeight / 2}px 0 0 0px;"
     >
       ${this._generateLabelDiv(
-      this.gridInRoute.id,
-      mdiTransmissionTower,
-      undefined,
-      rateA,
-      rateB
-    )}
+        this.gridInRoute.id,
+        mdiTransmissionTower,
+        undefined,
+        rateA,
+        rateB,
+        undefined,
+        undefined,
+        "grid"
+      )}
     </div>`;
 
     const svgRet = svg`
     <rect
       class="grid"
       id="grid-in-rect"
-      x="${startTerminatorX}"
-      y="${startTerminatorY}"
+      x="${0}"
+      y="${y2}"
       height="${in_width}"
-      width="${x_width}"
+      width="${arrow_head_length}"
     />
-    <polygon points="${startTerminatorX},${startTerminatorY}
-    ${startTerminatorX},${startTerminatorY + in_width}
-    ${startTerminatorX + ARROW_HEAD_LENGTH},${startTerminatorY + in_width / 2}"
+    <polygon points="${0},${y2}
+    ${0},${y2 + in_width}
+    ${arrow_head_length},${y2 + in_width / 2}"
     class="tint"/>
   `;
     return [divRet, svgRet];
   }
 
-  protected renderGenInBlendFlow(y1: number, endColor: string): TemplateResult {
-    const width = this._generationToConsumersFlowWidth();
-    const svgRet = width
-      ? svg`
-    <defs>
-      <linearGradient id="grad_grid" 0="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:${this._genColor()};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
-      </linearGradient>
-    </defs>
+  protected renderGridToConsumersFlow(
+    x10: number,
+    y2: number,
+    y5: number,
+    x1: number
+  ): TemplateResult | symbol {
+    if (this._gridToConsumersFlowWidth() === 0) {
+      return nothing;
+    }
+    return svg`
     <rect
-      id="gen-in-blend-rect"
-      x=0
-      y="${y1}"
-      height="${width}"
-      width="${BLEND_LENGTH + 2 * PAD_ANTIALIAS}"
-      fill="url(#grad_grid)"
-    />
-  `
-      : svg``;
-    return svgRet;
+      class="grid"
+      id="grid-to-cons-rect"
+      x="${x10}"
+      y="${y2}"
+      height="${y5 - y2}"
+      width="${x1 - x10}"
+    />`;
+  }
+
+  protected renderGridToBatteriesFlow(
+    x10: number,
+    y5: number,
+    y13: number,
+    x17: number,
+    y17: number,
+    x14: number
+  ): TemplateResult | symbol {
+    if (this._gridToBatteriesFlowWidth() === 0) {
+      return nothing;
+    }
+    return renderFlowByCorners(x10, y5, x10, y13, x14, y17, x17, y17, "grid");
+  }
+
+  protected renderBatteriesToConsumersFlow(
+    x1: number,
+    y5: number,
+    y4: number,
+    x20: number,
+    x21: number,
+    y17: number
+  ): TemplateResult | symbol {
+    if (this._batteryToConsumersFlowWidth() === 0) {
+      return nothing;
+    }
+    return renderFlowByCorners(x20, y17, x21, y17, x1, y5, x1, y4, "battery");
+  }
+
+  protected renderBatteriesToGridFlow(
+    x15: number,
+    y17: number,
+    x20: number,
+    x11: number,
+    y2: number,
+    y11: number
+  ): TemplateResult | symbol {
+    if (this._batteriesToGridFlowWidth() === 0) {
+      return nothing;
+    }
+    return renderFlowByCorners(
+      x15,
+      y17,
+      x20,
+      y17,
+      x11,
+      y2,
+      x11,
+      y11,
+      "battery"
+    );
+  }
+
+  protected renderGenToGridBlendFlow(
+    x10: number,
+    y10: number,
+    x11: number,
+    y11: number,
+    endColor: string
+  ): TemplateResult | symbol {
+    if (!this._generationToGridFlowWidth()) {
+      return nothing;
+    }
+    return renderBlendRect(
+      x11,
+      y11,
+      x11,
+      y10,
+      x10,
+      y11,
+      x10,
+      y10,
+      this._genColor(),
+      endColor,
+      "gen-grid-out-blend-rect"
+    );
+  }
+
+  protected renderBatteriesToGridBlendFlow(
+    x10: number,
+    y11: number,
+    x11: number,
+    y2: number,
+    endColor: string
+  ): TemplateResult | symbol {
+    if (!this._batteriesToGridFlowWidth()) {
+      return nothing;
+    }
+    return renderBlendRect(
+      x11,
+      y2,
+      x11,
+      y11,
+      x10,
+      y2,
+      x10,
+      y11,
+      this._battColor(),
+      endColor,
+      "batt-grid-out-blend-rect"
+    );
+  }
+  protected renderGenInBlendFlow(
+    y1: number,
+    y2: number,
+    endColor: string
+  ): TemplateResult | symbol {
+    if (!this._generationToConsumersFlowWidth()) {
+      return nothing;
+    }
+    return renderBlendRect(
+      0,
+      y1,
+      0,
+      y2,
+      CONSUMER_BLEND_LENGTH + 1,
+      y1,
+      CONSUMER_BLEND_LENGTH + 1,
+      y2,
+      this._genColor(),
+      endColor,
+      "gen-in-blend-rect"
+    );
   }
 
   protected renderGridInBlendFlow(
     y2: number,
+    y5: number,
     endColor: string
-  ): [TemplateResult, number] {
-    const width = this._gridInFlowWidth();
+  ): TemplateResult | symbol {
+    return renderBlendRect(
+      0,
+      y2,
+      0,
+      y5,
+      CONSUMER_BLEND_LENGTH + 1,
+      y2,
+      CONSUMER_BLEND_LENGTH + 1,
+      y5,
+      this._gridColor(),
+      endColor,
+      "grid-in-blend-rect"
+    );
+  }
 
-    const y5 = y2 + width;
+  protected renderBatteriesToConsumersBlendFlow(
+    y5: number,
+    y4: number,
+    endColor: string
+  ): TemplateResult | symbol {
+    if (this._batteryToConsumersFlowWidth() === 0) {
+      return nothing;
+    }
 
-    const svgRet = svg`
-    <defs>
-      <linearGradient id="grad_gen" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:${this._gridColor()};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
-      </linearGradient>
-    </defs>
-    <rect
-      id="grid-in-blend-rect"
-      x=0
-      y="${y2}"
-      height="${width}"
-      width="${BLEND_LENGTH + 1}"
-      fill="url(#grad_gen)"
-      style="fill-opacity:1"
-    />
-  `;
-    return [svgRet, y5];
+    return renderBlendRect(
+      0,
+      y5,
+      0,
+      y4,
+      CONSUMER_BLEND_LENGTH + 1,
+      y5,
+      CONSUMER_BLEND_LENGTH + 1,
+      y4,
+      this._battColor(),
+      endColor,
+      "batt-in-blend-rect"
+    );
   }
 
   protected _renderBlendedFlowPreFanOut(
+    y1: number,
     y4: number,
-    y5: number,
     color: string
   ): TemplateResult {
     const svgRet = svg`
     <rect
       id="blended-flow-pre-fan-out-rect"
-      x=${BLEND_LENGTH}
-      y="${y4}"
-      height="${y5 - y4}"
-      width="${BLEND_LENGTH_PRE_FAN_OUT + 1}"
+      x=${CONSUMER_BLEND_LENGTH}
+      y="${y1}"
+      height="${y4 - y1}"
+      width="${CONSUMER_BLEND_LENGTH_PRE_FAN_OUT + 1}"
       style="fill:${color};fill-opacity:1"
     />
   `;
@@ -933,11 +1445,11 @@ export class ElecSankey extends LitElement {
     if (this.maxConsumerBranches !== 0) {
       const numConsumerRoutes = Object.keys(consumerRoutes).length;
       if (numConsumerRoutes > this.maxConsumerBranches - 1) {
-
         let otherCount = numConsumerRoutes + 2 - this.maxConsumerBranches;
         consumerRoutes = this.consumerRoutes;
-        const sortedConsumerRoutes: ElecRoute[]
-          = Object.values(this.consumerRoutes).sort((a, b) => a.rate - b.rate);
+        const sortedConsumerRoutes: ElecRoute[] = Object.values(
+          this.consumerRoutes
+        ).sort((a, b) => a.rate - b.rate);
         sortedConsumerRoutes.forEach((route) => {
           if (otherCount > 0) {
             groupedConsumer.rate += route.rate;
@@ -957,8 +1469,8 @@ export class ElecSankey extends LitElement {
   }
 
   protected _renderConsumerFlows(
-    y6: number,
-    y7: number,
+    y1: number,
+    y5: number,
     color: string,
     svgScaleX: number
   ): [Array<TemplateResult>, Array<TemplateResult>, number] {
@@ -968,8 +1480,9 @@ export class ElecSankey extends LitElement {
     const xRight = 100 - ARROW_HEAD_LENGTH;
     let i = 0;
     const total_height = this._consumersFanOutTotalHeight();
-    let yLeft = y6;
-    let yRight = (y6 + y7) / 2 - total_height / 2;
+    const gap = CONSUMERS_FAN_OUT_VERTICAL_GAP / svgScaleX;
+    let yLeft = y1;
+    let yRight = (y1 + y5) / 2 - total_height / 2;
     if (yRight < TEXT_PADDING) {
       yRight = TEXT_PADDING;
     }
@@ -992,7 +1505,7 @@ export class ElecSankey extends LitElement {
         );
         divRetArray.push(divRow);
         svgRetArray.push(svgRow);
-        yRight += CONSUMERS_FAN_OUT_VERTICAL_GAP;
+        yRight += gap;
       }
     }
 
@@ -1008,12 +1521,191 @@ export class ElecSankey extends LitElement {
     );
     divRetArray.push(divRow);
     svgRetArray.push(svgRow);
-    yRight += CONSUMERS_FAN_OUT_VERTICAL_GAP;
+    return [divRetArray, svgRetArray, yRight + CONSUMER_LABEL_HEIGHT / 2];
+  }
 
-    if (svgRetArray.length > 0) {
-      yRight += CONSUMERS_FAN_OUT_VERTICAL_GAP;
+  protected renderBatteriesInOutFlow(
+    x1: number,
+    x17: number,
+    x14: number,
+    x15: number,
+    x21: number,
+    y17: number,
+    y18: number,
+    svgScaleX
+  ): [Array<TemplateResult | symbol>, TemplateResult | symbol, number] {
+    // Bottom layer
+    const svgRetArray: Array<TemplateResult | symbol> = [];
+    // Top layer
+    const svgRetArray2: Array<TemplateResult | symbol> = [];
+    const divRetArray: Array<TemplateResult | symbol> = [];
+    // @todo if batteries aren't present, skip.
+    const gap = CONSUMERS_FAN_OUT_VERTICAL_GAP / svgScaleX;
+    const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
+    const gridColor = this._gridColor();
+    const genColor = this._genColor();
+
+    const ratio = x14 - x17 < 1 ? 0 : (x14 - x17) / (x15 - x17);
+    const battOutBlendColor = mixHexes(gridColor, genColor, ratio);
+    if (this._gridToBatteriesFlowWidth() !== 0) {
+      svgRetArray.push(
+        renderBlendRect(
+          x14,
+          y17,
+          x17,
+          y17,
+          x14,
+          y18,
+          x17,
+          y18,
+          gridColor,
+          battOutBlendColor,
+          "grid-to-batt-blend"
+        )
+      );
     }
-    return [divRetArray, svgRetArray, yRight];
+    if (this._generationToBatteryFlowWidth() !== 0) {
+      svgRetArray.push(
+        renderBlendRect(
+          x15,
+          y17,
+          x14,
+          y17,
+          x15,
+          y18,
+          x14,
+          y18,
+          genColor,
+          battOutBlendColor,
+          "gen-to-batt-blend"
+        )
+      );
+    }
+    if (this._batteryInTotal() > 0) {
+      svgRetArray.push(renderRect(x15, y17, x21 - x15, y18 - y17, "battery"));
+    }
+
+    const batteryRoutes: { [id: string]: ElecRoutePair } = this.batteryRoutes;
+    const divHeight = ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 2;
+
+    let xA: number = x21;
+    let yA: number = y18;
+
+    let xB: number = x15;
+    let count = 0;
+
+    let curvePadTemp = 0;
+    for (const key in batteryRoutes) {
+      if (!Object.prototype.hasOwnProperty.call(batteryRoutes, key)) {
+        console.error("error fetching battery route: " + key);
+        continue;
+      }
+      const batt = batteryRoutes[key];
+      const widthOut = batt.out.rate > 0 ? this._rateToWidth(batt.out.rate) : 0;
+      const widthIn = batt.in.rate > 0 ? this._rateToWidth(batt.in.rate) : 0;
+      curvePadTemp = x1 - x21;
+      if (widthIn > 0) {
+        svgRetArray.push(
+          renderFlowByCorners(
+            xA,
+            yA,
+            xA - widthIn,
+            yA,
+            x1,
+            yA + curvePadTemp,
+            x1,
+            yA + curvePadTemp + widthIn,
+            "battery"
+          )
+        );
+        svgRetArray.push(
+          svg`
+          <polygon points="${x1},${yA + curvePadTemp}
+          ${x1 - arrow_head_length},${yA + curvePadTemp + widthIn / 2},
+          ${x1},${yA + curvePadTemp + widthIn}"
+          class="tint"/>`
+        );
+        xA -= widthIn;
+      }
+      if (xA - x15 > 1) {
+        svgRetArray.push(
+          renderRect(x15, yA, xA - x15, gap + widthOut + widthIn, "battery")
+        );
+      }
+      if (widthOut > 0) {
+        svgRetArray2.push(
+          renderFlowByCorners(
+            xB,
+            yA,
+            xB - widthOut,
+            yA,
+            x1 - arrow_head_length,
+            yA + curvePadTemp + widthIn,
+            x1 - arrow_head_length,
+            yA + curvePadTemp + widthIn + widthOut,
+            "battery",
+            battOutBlendColor
+          )
+        );
+        svgRetArray.push(
+          svg`
+          <polygon points="${x1 - arrow_head_length},${
+            yA + curvePadTemp + widthIn
+          }
+          ${x1},${yA + curvePadTemp + widthIn + widthOut / 2},
+          ${x1 - arrow_head_length},${yA + curvePadTemp + widthIn + widthOut}"
+          style="fill:${battOutBlendColor}" />`
+        );
+        xB -= widthOut;
+      }
+      if (xB - x17 > 1) {
+        svgRetArray.push(
+          renderRect(
+            x17,
+            yA,
+            xB - x17,
+            gap + widthOut + widthIn,
+            "battery-in",
+            battOutBlendColor
+          )
+        );
+      }
+
+      divRetArray.push(
+        html`<div
+          class="label elecroute-label-battery"
+          style="height:${divHeight}px;
+            top: ${
+              (yA + curvePadTemp + (widthOut + widthIn) / 2) * svgScaleX -
+              (count * divHeight) / 2
+            }px; margin: ${-divHeight / 2}px 0 0 0;"
+        >
+            ${this._generateLabelDiv(
+              batt.in.id,
+              batt.out.rate > 0 ? mdiBatteryCharging : mdiBattery,
+              "",
+              batt.out.rate,
+              batt.in.rate,
+              batt.out.rate > 0 ? battOutBlendColor : undefined,
+              undefined,
+              "battery"
+            )}
+          </div>
+        </div>`
+      );
+      count += 1;
+
+      yA += gap + widthOut + widthIn;
+    }
+
+    return [
+      divRetArray,
+      svg`
+      ${svgRetArray}
+      ${svgRetArray2}
+      `,
+      yA - gap + curvePadTemp + divHeight / 2,
+    ];
   }
 
   protected _gridBlendRatio(): number {
@@ -1024,7 +1716,7 @@ export class ElecSankey extends LitElement {
     const renewable =
       this._generationTrackedTotal() +
       this._generationPhantom() -
-      this._gridExport();
+      this._gridExport;
     const ratio = grid / (grid + renewable);
     if (ratio < 0) {
       return 0;
@@ -1035,11 +1727,41 @@ export class ElecSankey extends LitElement {
     return ratio;
   }
 
-  protected _rateInBlendColor(): string {
+  protected _toConsumersBlendColor(
+    genToConsFlow: number,
+    gridToConsFlow: number,
+    battToConsFlow: number
+  ): string {
+    const total = genToConsFlow + gridToConsFlow + battToConsFlow;
+    return mix3Hexes(
+      this._genColor(),
+      this._gridColor(),
+      this._battColor(),
+      genToConsFlow / total,
+      gridToConsFlow / total,
+      battToConsFlow / total
+    );
+  }
+
+  protected _gridOutBlendColor(
+    genToGridFlow: number,
+    battToGridFlow: number
+  ): string {
+    return mixHexes(
+      this._genColor(),
+      this._battColor(),
+      genToGridFlow / (genToGridFlow + battToGridFlow)
+    );
+  }
+
+  protected _toBatteriesBlendColor(
+    gridToBattFlow: number,
+    genToBattFlow: number
+  ): string {
     return mixHexes(
       this._gridColor(),
-      this._genColor(),
-      this._gridBlendRatio()
+      this._battColor(),
+      gridToBattFlow / (gridToBattFlow + genToBattFlow)
     );
   }
 
@@ -1051,73 +1773,245 @@ export class ElecSankey extends LitElement {
     number,
     number,
     number,
-    number
+    string,
+    string,
+    string
   ] {
-    const x0 = GEN_ORIGIN_X - this._generationInFlowWidth() / 2;
-    const y0 = TERMINATOR_BLOCK_LENGTH;
-
     const widthGenToConsumers = this._generationToConsumersFlowWidth();
     const widthGenToGrid = this._generationToGridFlowWidth();
-    const radiusGenToConsumers = 50 + widthGenToConsumers;
-    const radiusGenToGrid = 50 + widthGenToGrid;
-    const y1 = Math.max(
-      TERMINATOR_BLOCK_LENGTH + radiusGenToConsumers - widthGenToConsumers / 2,
-      TERMINATOR_BLOCK_LENGTH + radiusGenToGrid - widthGenToGrid / 2
-    );
-    const x1: number =
-      x0 + widthGenToGrid + widthGenToConsumers / 2 + radiusGenToConsumers;
+    const widthGenToBatteries = this._generationToBatteryFlowWidth();
+    const widthBatteriesToGrid = this._batteriesToGridFlowWidth();
+    const widthGridToBatteries = this._gridToBatteriesFlowWidth();
+    const widthBatteriesToConsumers = this._batteryToConsumersFlowWidth();
+    const widthGridToConsumers = this._gridToConsumersFlowWidth();
 
-    const x2: number = x1;
+    const mostLeft = Math.min(-widthGenToGrid, -widthGridToBatteries);
+    const mostRight =
+      widthGenToBatteries +
+      Math.max(
+        widthGenToConsumers,
+        widthBatteriesToGrid + widthBatteriesToConsumers
+      );
+    const width = mostRight - mostLeft;
+    const padX =
+      Math.max(
+        widthGenToGrid,
+        widthGenToConsumers,
+        widthGridToBatteries,
+        widthBatteriesToConsumers,
+        30
+      ) * PAD_MULTIPLIER;
+    const midX = ARROW_HEAD_LENGTH + GRID_BLEND_LENGTH + width / 2 + padX;
+
+    const x0 =
+      ARROW_HEAD_LENGTH + GRID_BLEND_LENGTH + widthGenToGrid >
+      widthGridToBatteries
+        ? midX - width / 2
+        : midX - width / 2 + widthGridToBatteries - widthGenToGrid;
+    const y0 = TERMINATOR_BLOCK_LENGTH;
+
+    const y1 =
+      TERMINATOR_BLOCK_LENGTH +
+      Math.max(
+        padX,
+        widthGenToConsumers,
+        padX + widthGenToGrid + widthBatteriesToGrid - widthGenToConsumers,
+        widthGenToGrid * 2 + widthBatteriesToGrid - widthGenToConsumers
+      );
+    const x1: number = midX + width / 2 + padX;
+
     const y2: number = y1 + widthGenToConsumers;
 
-    const temp = x0 + this._generationToGridFlowWidth() - (y2 - y0);
-    const x10 = temp > ARROW_HEAD_LENGTH ? temp : ARROW_HEAD_LENGTH;
-    const y10 = y2 - this._generationToGridFlowWidth();
-    return [x0, y0, x1, y1, x2, y2, x10, y10];
+    const y5 = y2 + widthGridToConsumers;
+    const y10 = y2 - this._generationToGridFlowWidth() - widthBatteriesToGrid;
+
+    const gridOutBlendColor = this._gridOutBlendColor(
+      widthGenToGrid,
+      widthBatteriesToGrid
+    );
+    const toConsumersBlendColor = this._toConsumersBlendColor(
+      widthGenToConsumers,
+      widthGridToConsumers,
+      widthBatteriesToConsumers
+    );
+    const toBatteriesBlendColor = this._toBatteriesBlendColor(
+      widthGridToBatteries,
+      widthGenToBatteries
+    );
+    return [
+      x0,
+      y0,
+      x1,
+      y1,
+      y2,
+      y5,
+      y10,
+      gridOutBlendColor,
+      toConsumersBlendColor,
+      toBatteriesBlendColor,
+    ];
   }
 
   protected render(): TemplateResult {
     this._recalculate();
-    const [x0, y0, x1, y1, x2, y2, x10, y10] = this._calc_xy();
-
-    const generationToGridFlowSvg = this.renderGenerationToGridFlow(
+    const [
       x0,
       y0,
-      x10,
-      y10
-    );
-    const blendColor = this._rateInBlendColor();
-
-    const genInBlendFlowSvg = this.renderGenInBlendFlow(y1, blendColor);
-    const [gridInBlendFlowSvg, y5] = this.renderGridInBlendFlow(y2, blendColor);
-    const blendedFlowPreFanOut = this._renderBlendedFlowPreFanOut(
+      x1,
       y1,
+      y2,
       y5,
-      blendColor
-    );
+      y10,
+      gridOutBlendColor,
+      toConsumersBlendColor,
+      toBatteriesBlendColor, // TODO refactor this
+    ] = this._calc_xy();
 
     const svgCanvasWidth = x1;
     const svgVisibleWidth = SVG_LHS_VISIBLE_WIDTH;
     const svgScaleX = svgVisibleWidth / svgCanvasWidth;
+    const x10 = ARROW_HEAD_LENGTH / svgScaleX;
+    const x11 = x10 + GRID_BLEND_LENGTH;
 
-    const [gridInDiv, gridInFlowSvg] = this.renderGridInFlow(x2, y2, svgScaleX);
+    const generationToGridFlowSvg = this.renderGenerationToGridFlow(
+      x0,
+      y0,
+      x11,
+      y10,
+      svgScaleX
+    );
+    const gridOutArrowSvg = this.renderGridOutFlowArrow(
+      x10,
+      y10,
+      y2,
+      svgScaleX,
+      gridOutBlendColor
+    );
 
+    const genInBlendFlowSvg = this.renderGenInBlendFlow(
+      y1,
+      y2,
+      toConsumersBlendColor
+    );
+
+    const gridInBlendFlowSvg = this.renderGridInBlendFlow(
+      y2,
+      y5,
+      toConsumersBlendColor
+    );
+
+    const y11 = y2 - this._batteriesToGridFlowWidth();
+    const y13 = y5 + this._gridToBatteriesFlowWidth();
+
+    const y17 = y13 + (y10 - y0);
+
+    const x14 = x0 + this._generationToGridFlowWidth();
+    const x15 = x14 + this._generationToBatteryFlowWidth();
+    const x16 = x15 + this._generationToConsumersFlowWidth();
+    const x17 = x14 - this._gridToBatteriesFlowWidth();
+    const x20 = x15 + this._batteriesToGridFlowWidth();
+    const x21 = x20 + this._batteryToConsumersFlowWidth();
+
+    const y4 = y5 + this._batteryToConsumersFlowWidth();
+    const y18 = y17 + BATTERY_BLEND_LENGTH;
+
+    const genToGridBlendSvg = this.renderGenToGridBlendFlow(
+      x10,
+      y10,
+      x11,
+      y11,
+      gridOutBlendColor
+    );
+    const [gridInDiv, gridInFlowSvg] = this.renderGridInFlow(
+      y2,
+      y13,
+      x10,
+      svgScaleX
+    );
+    const gridToConsumersFlowSvg = this.renderGridToConsumersFlow(
+      x10,
+      y2,
+      y5,
+      x1
+    );
+
+    const genToBattFlowSvg = this.renderGenerationToBatteriesFlow(
+      x14,
+      x15,
+      y0,
+      y17
+    );
     const [genInFlowDiv, genInFlowSvg] = this.renderGenerationToConsumersFlow(
       x0,
+      y0,
+      x15,
+      x16,
       x1,
       y1,
-      x2,
       y2,
       svgScaleX
     );
     const [consOutFlowsDiv, consOutFlowsSvg, y8] = this._renderConsumerFlows(
       y1,
       y5,
-      blendColor,
+      toConsumersBlendColor,
       svgScaleX
     );
+    const gridToBattFlowSvg = this.renderGridToBatteriesFlow(
+      x10,
+      y5,
+      y13,
+      x17,
+      y17,
+      x14
+    );
+    const battToConsFlowSvg = this.renderBatteriesToConsumersFlow(
+      x1,
+      y5,
+      y4,
+      x20,
+      x21,
+      y17
+    );
+    const battToGridFlowSvg = this.renderBatteriesToGridFlow(
+      x15,
+      y17,
+      x20,
+      x11,
+      y2,
+      y11
+    );
+    const battToGridBlendFlowSvg = this.renderBatteriesToGridBlendFlow(
+      x10,
+      y11,
+      x11,
+      y2,
+      gridOutBlendColor
+    );
+    const [batteriesFlowInOutDiv, battInOutBlendSvg, y22] =
+      this.renderBatteriesInOutFlow(
+        x1,
+        x17,
+        x14,
+        x15,
+        x21,
+        y17,
+        y18,
+        svgScaleX
+      );
 
-    const ymax = Math.max(y5, y8);
+    const battToConsBlendFlowSvg = this.renderBatteriesToConsumersBlendFlow(
+      y5,
+      y4,
+      toConsumersBlendColor
+    );
+
+    const blendedFlowPreFanOut = this._renderBlendedFlowPreFanOut(
+      y1,
+      y4,
+      toConsumersBlendColor
+    );
+    const ymax = Math.max(y4, y8, y22 + 30);
     return html`<div class="card-content">
       <div class="col1 container">
         <div class="col1top padding"></div>
@@ -1134,18 +2028,28 @@ export class ElecSankey extends LitElement {
               height=${ymax * svgScaleX}
               preserveAspectRatio="none"
             >
-              ${genInFlowSvg} ${generationToGridFlowSvg} ${gridInFlowSvg}
+              ${genInFlowSvg} ${generationToGridFlowSvg} ${genToGridBlendSvg}
+              ${gridOutArrowSvg} ${genToBattFlowSvg} ${gridToBattFlowSvg}
+              ${battToGridBlendFlowSvg} ${gridInFlowSvg}
+              ${gridToConsumersFlowSvg} ${battToConsFlowSvg}
+              ${battToGridFlowSvg} ${battInOutBlendSvg}
             </svg>
           </div>
           <div class="sankey-mid">
-            <svg
-              viewBox="0 0 100 ${ymax}"
-              width="100%"
-              height=${ymax * svgScaleX}
-              preserveAspectRatio="none"
-            >
-              ${genInBlendFlowSvg} ${gridInBlendFlowSvg} ${blendedFlowPreFanOut}
-            </svg>
+            <div class="layer-wrapper">
+              <div class="sankey-mid-svg" width="100%">
+                <svg
+                  viewBox="0 0 100 ${ymax}"
+                  width="100%"
+                  height=${ymax * svgScaleX}
+                  preserveAspectRatio="none"
+                >
+                  ${genInBlendFlowSvg} ${gridInBlendFlowSvg}
+                  ${battToConsBlendFlowSvg} ${blendedFlowPreFanOut}
+                </svg>
+              </div>
+              <div class="sankey-mid-labels">${batteriesFlowInOutDiv}</div>
+            </div>
           </div>
           <div class="sankey-right">
             <svg
@@ -1201,6 +2105,22 @@ export class ElecSankey extends LitElement {
       flex: 1;
       flex-grow: 1;
       min-width: 20px;
+      position: relative;
+    }
+    .layer-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .sankey-mid-labels {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+    }
+    .sankey-mid-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
     }
     .sankey-right {
       flex: 1;
@@ -1218,10 +2138,16 @@ export class ElecSankey extends LitElement {
     .label {
       flex: 1;
       position: relative;
+      font-size: 10px;
     }
     .elecroute-label-grid {
       display: flex;
       text-align: center;
+    }
+    .elecroute-label-battery {
+      display: flex;
+      min-width: 60px;
+      padding-left: 6px;
     }
     .elecroute-label-horiz {
       display: flex;
@@ -1250,18 +2176,24 @@ export class ElecSankey extends LitElement {
         stroke: none;
         stroke-width: 0;
       }
+      path.grid {
+        fill: var(--grid-in-color, #920e83);
+      }
+      path.battery {
+        fill: var(--batt-in-color, #01f4fc);
+      }
       polygon {
         stroke: none;
       }
       polygon.generation {
         fill: var(--generation-color, #0d6a04);
       }
+      polygon.grid {
+        fill: var(--grid-in-color, #920e83);
+      }
       polygon.tint {
         fill: #000000;
         opacity: 0.2;
-      }
-      path.flow {
-        fill: gray;
       }
       path.generation {
         fill: var(--generation-color, #0d6a04);
@@ -1274,6 +2206,9 @@ export class ElecSankey extends LitElement {
       }
       rect.grid {
         fill: var(--grid-in-color, #920e83);
+      }
+      rect.battery {
+        fill: var(--batt-in-color, #01f4fc);
       }
     }
   `;
