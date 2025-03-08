@@ -41,7 +41,7 @@ import { customElement, property } from "lit/decorators.js";
  */
 
 const TERMINATOR_BLOCK_LENGTH = 50;
-const GENERATION_FAN_OUT_HORIZONTAL_GAP = 80;
+const GENERATION_FAN_OUT_HORIZONTAL_GAP = 50;
 const CONSUMERS_FAN_OUT_VERTICAL_GAP = 90;
 const CONSUMER_LABEL_HEIGHT = 50;
 const TARGET_SCALED_TRUNK_WIDTH = 90;
@@ -904,15 +904,14 @@ export class ElecSankey extends LitElement {
   ): [TemplateResult[] | symbol[], TemplateResult | symbol] {
     const totalGenWidth = this._generationInFlowWidth();
     const genToConsWidth = this._generationToConsumersFlowWidth();
-
+    const genFanOutGap = GENERATION_FAN_OUT_HORIZONTAL_GAP / svgScaleX;
     if (genToConsWidth === 0 && !Object.keys(this.generationInRoutes)) {
       return [[nothing], nothing];
     }
     const count =
       Object.keys(this.generationInRoutes).length +
       (this._phantomGenerationInRoute !== undefined ? 1 : 0);
-    const fanOutWidth =
-      totalGenWidth + (count - 1) * GENERATION_FAN_OUT_HORIZONTAL_GAP;
+    const fanOutWidth = totalGenWidth + (count - 1) * genFanOutGap;
     let xA = x0 + totalGenWidth / 2 - fanOutWidth / 2;
     let xB = x0;
     const svgArray: TemplateResult[] = [];
@@ -976,7 +975,7 @@ export class ElecSankey extends LitElement {
             </div>`
           );
         }
-        xA += width + GENERATION_FAN_OUT_HORIZONTAL_GAP;
+        xA += width + genFanOutGap;
         xB += width;
       }
       i++;
