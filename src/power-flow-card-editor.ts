@@ -131,6 +131,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         .hass=${this.hass}
         id="battery-entities"
         label="Battery Entities (Optional)"
+        subLabel="Power from battery (one combined in/out per battery, positive = discharging)"
         .entities=${this._configBatteryEntities}
         includeDeviceClasses=${["power"]}
         @entities-changed=${this._valueChanged}
