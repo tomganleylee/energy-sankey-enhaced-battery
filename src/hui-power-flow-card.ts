@@ -380,12 +380,12 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
           in: {
             id: entity.entity,
             text: name,
-            rate: powerIn < 0 ? -powerIn : 0,
+            rate: powerIn > 0 ? powerIn : 0,
           },
           out: {
             id: "null",
             text: "null",
-            rate: powerIn > 0 ? powerIn : 0,
+            rate: powerIn < 0 ? -powerIn : 0,
           }
         };
       }
