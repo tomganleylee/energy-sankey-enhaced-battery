@@ -42,7 +42,8 @@ import { customElement, property } from "lit/decorators.js";
 
 const TERMINATOR_BLOCK_LENGTH = 50;
 const GENERATION_FAN_OUT_HORIZONTAL_GAP = 50;
-const CONSUMERS_FAN_OUT_VERTICAL_GAP = 90;
+const CONSUMERS_FAN_OUT_VERTICAL_GAP = 50;
+const BATTERIES_FAN_OUT_VERTICAL_GAP = 70;
 const CONSUMER_LABEL_HEIGHT = 50;
 const TARGET_SCALED_TRUNK_WIDTH = 90;
 const PAD_MULTIPLIER = 1.8;
@@ -827,31 +828,6 @@ export class ElecSankey extends LitElement {
     return rate ? this._rateToWidth(rate) : 0;
   }
 
-  private _consumersFanOutTotalHeight(): number {
-    let totalHeight = 0;
-    let count = 0;
-    for (const id in this.consumerRoutes) {
-      if (Object.prototype.hasOwnProperty.call(this.consumerRoutes, id)) {
-        totalHeight += this._rateToWidth(this.consumerRoutes[id].rate);
-        count++;
-      }
-    }
-    if (this.maxConsumerBranches !== 0) {
-      if (count > this.maxConsumerBranches - 2) {
-        count = this.maxConsumerBranches - 2;
-      }
-    }
-
-    const untracked = this._untrackedConsumerRoute.rate;
-    totalHeight += this._rateToWidth(untracked);
-    count++;
-
-    if (count > 0) {
-      totalHeight += (count - 1) * CONSUMERS_FAN_OUT_VERTICAL_GAP;
-    }
-    return totalHeight;
-  }
-
   private _genColor(): string {
     const computedStyles = getComputedStyle(this);
     const ret = computedStyles.getPropertyValue("--generation-color").trim();
@@ -1469,7 +1445,7 @@ export class ElecSankey extends LitElement {
 
   protected _renderConsumerFlows(
     y1: number,
-    y5: number,
+    y4: number,
     color: string,
     svgScaleX: number
   ): [Array<TemplateResult>, Array<TemplateResult>, number] {
@@ -1478,17 +1454,17 @@ export class ElecSankey extends LitElement {
     const xLeft = 0;
     const xRight = 100 - ARROW_HEAD_LENGTH;
     let i = 0;
-    const total_height = this._consumersFanOutTotalHeight();
+    const consumerRoutes = this._getGroupedConsumerRoutes();
+    const count = Object.keys(consumerRoutes).length;
     const gap = CONSUMERS_FAN_OUT_VERTICAL_GAP / svgScaleX;
+    const total_height = y4 - y1 + count * gap;
     let yLeft = y1;
-    let yRight = (y1 + y5) / 2 - total_height / 2;
+    let yRight = (y1 + y4) / 2 - total_height / 2;
     if (yRight < TEXT_PADDING) {
       yRight = TEXT_PADDING;
     }
     let svgRow: TemplateResult;
     let divRow: TemplateResult;
-
-    const consumerRoutes = this._getGroupedConsumerRoutes();
 
     for (const key in consumerRoutes) {
       if (Object.prototype.hasOwnProperty.call(consumerRoutes, key)) {
@@ -1539,7 +1515,7 @@ export class ElecSankey extends LitElement {
     const svgRetArray2: Array<TemplateResult | symbol> = [];
     const divRetArray: Array<TemplateResult | symbol> = [];
     // @todo if batteries aren't present, skip.
-    const gap = CONSUMERS_FAN_OUT_VERTICAL_GAP / svgScaleX;
+    const gap = BATTERIES_FAN_OUT_VERTICAL_GAP / svgScaleX;
     const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
     const gridColor = this._gridColor();
     const genColor = this._genColor();
@@ -1952,7 +1928,7 @@ export class ElecSankey extends LitElement {
     );
     const [consOutFlowsDiv, consOutFlowsSvg, y8] = this._renderConsumerFlows(
       y1,
-      y5,
+      y4,
       toConsumersBlendColor,
       svgScaleX
     );
