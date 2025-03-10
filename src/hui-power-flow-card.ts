@@ -190,7 +190,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      * HA configures *energy* sources, not power sources, so we look for the
      * original devices associated with each energy source, and find an
      * associated power sensor for each.
-     * It's not perfect, but even if a partially populated config is a huge
+     * It's not perfect, but even a partially populated config is a huge
      * help to the user.
      */
 
