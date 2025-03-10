@@ -19,6 +19,7 @@ import { EntityConfig, LovelaceRowConfig } from "./ha/panels/lovelace/entity-row
 import { processEditorEntities } from "./ha/panels/lovelace/editor/process-editor-entities";
 import { mdiPalette } from "@mdi/js";
 import setupCustomlocalize from "./localize";
+import { verifyAndMigrateConfig } from "./hui-power-flow-card";
 
 const POWER_LABELS = [
   "power_from_grid_entity",
@@ -82,9 +83,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
   public setConfig(config: PowerFlowCardConfig): void {
-    this._config = config;
-    this._configBatteryEntities = processEditorEntities(config.battery_entities);
-    this._configConsumerEntities = processEditorEntities(config.consumer_entities);
+    this._config = verifyAndMigrateConfig(config);
+    this._configBatteryEntities = 
+        processEditorEntities(this._config.battery_entities);
+    this._configConsumerEntities = 
+        processEditorEntities(this._config.consumer_entities);
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
@@ -139,7 +142,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       <elec-sankey-hui-entities-card-row-editor
         .hass=${this.hass}
         id="consumer-entities"
-        label="Consumer Entities (required)"
+        label="Consumer Entities (Required)"
         .entities=${this._configConsumerEntities}
         includeDeviceClasses=${["power"]}
         @entities-changed=${this._valueChanged}

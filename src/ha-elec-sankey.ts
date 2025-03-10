@@ -43,7 +43,6 @@ export class HaElecSankey extends ElecSankey {
   ): TemplateResult {
     const _id = id || "";
     const numFractionDigits = this.unit === "kWh" ? 1 : 0;
-    console.log("displayClass: ", displayClass);
     return html`
       <div
         class="label ${id ? "label-action-clickable " : ""}${displayClass}"

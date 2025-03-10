@@ -24,6 +24,31 @@ import { getEnergyPreferences } from "./ha/data/energy";
 import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/data/entity_registry";
 //import "./power-flow-card-editor"
 
+export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
+  if (!config) {
+    throw new Error("Invalid configuration");
+  }
+  let newConfig = { ...config };
+
+  if (!config.config_version) {
+    console.log("Migrating config from ? to version 1");
+    newConfig.config_version = 1;
+    newConfig.battery_entities = newConfig.battery_entities || [];
+    newConfig.hide_small_consumers = newConfig.hide_small_consumers || false;
+    newConfig.max_consumer_branches = newConfig.max_consumer_branches || 0;
+  }
+
+  if (
+    !config.power_from_grid_entity &&
+    !config.power_to_grid_entity &&
+    !config.generation_entity &&
+    config.consumer_entities.length === 0
+  ) {
+    throw new Error("Must specify at least one entity");
+  }
+
+  return newConfig;
+}
 
 import {
   POWER_CARD_NAME,
@@ -78,23 +103,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   }
 
   public setConfig(config: PowerFlowCardConfig): void {
-    if (
-      !config.power_from_grid_entity &&
-      !config.power_to_grid_entity &&
-      !config.generation_entity &&
-      config.consumer_entities.length === 0
-    ) {
-      throw new Error("Must specify at least one entity");
-    }
 
-    let newConfig = { ...config };
-    if (newConfig.battery_entities === undefined) {
-      newConfig.battery_entities = [];
-      newConfig.config_version = 1;
-    }
-
-    // @todo consider adding more config checks here.
-    this._config = { ...newConfig };
+    const newConfig = verifyAndMigrateConfig(config);
+    this._config = {...newConfig};
   }
 
   private static async getExtendedEntityRegistryEntries(_hass: HomeAssistant): Promise<{ [id: string]: ExtEntityRegistryEntry }> {
@@ -190,7 +201,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      * HA configures *energy* sources, not power sources, so we look for the
      * original devices associated with each energy source, and find an
      * associated power sensor for each.
-     * It's not perfect, but even if a partially populated config is a huge
+     * It's not perfect, but even a partially populated config is a huge
      * help to the user.
      */
 
