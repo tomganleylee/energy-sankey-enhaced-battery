@@ -36,7 +36,7 @@ The diagram dynamically scales to fit the size of the window it is in (mostly).
  - Type 'Sankey' in the search box
  - Select 'Custom: Sankey Energy Flow Card' or 'Custom: Sankey Power Flow Card'
    - The energy card does not require configuration
-   - The power card auto configures. If there are any problems with autoconfiguration, use built in card editor edit feature select the correct power entities for grid input / generation / consumers / batteries.
+   - The power card auto configures. If there are any problems with autoconfiguration, use built in card editor to select the correct power entities for grid input / generation / consumers / batteries.
 
 Outstanding issues to solve:
 - [ ] Sometimes there are thin dark lines between the blocks that make up the shapes, I believe this is caused by antialiasing, but I don't see an easy way of reducing/eliminating it, especially where the shapes are across two divs.
