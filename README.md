@@ -8,7 +8,9 @@
 
 Energy Sankey is a collection of dashboard cards for homeassistant, dynamically displaying the flow of electrical energy and power.
 
-![alt text](https://github.com/davet2001/energy-sankey/raw/main/video.webm)
+![video of animated sankey](https://github.com/davet2001/energy-sankey/raw/main/video.webm)
+![video of animated sankey](hthttps://github.com/davet2001/energy-sankey/blob/update-readme/video.webm)
+
 <!-- ![alt text](image.png) -->
 
 The cards are ideal if you want to track your electricity consumption and identify where your energy is going.
