@@ -20,7 +20,7 @@ There are two main cards:
 
 Both cards base their configuration on the existing home assistant energy configuration, and use the same colour scheme.
 
-Both are live and automatically updating. The cards try to display a coherent representation even if the data set is incomplete or physically impossible (e.g. exporting more from generation + batteries). This means it is ok for asynchronous updates to be made to any of the entities the card is monitoring.
+Both are live and automatically updating. The cards try to display a coherent representation even if the data set is incomplete or physically impossible (e.g. exporting more than generation + batteries are outputting). This means it is ok for asynchronous updates to be made to any of the entities the card is monitoring, and they can have different update intervals.
 
 The width of the flows represents the amount, and the overall size of everything is automatically scaled so that no one part of the diagram becomes too wide.
 
