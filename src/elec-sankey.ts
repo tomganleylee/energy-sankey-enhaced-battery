@@ -726,7 +726,7 @@ export class ElecSankey extends LitElement {
           }
         : undefined;
     this._phantomGenerationInRoute =
-      phantomGeneration > 0
+      phantomGeneration > 0.01
         ? {
             text: "Unknown source",
             icon: mdiHelpRhombus,
