@@ -25,6 +25,7 @@ const POWER_LABELS = [
   "power_from_grid_entity",
   "generation_entity",
   "hide_small_consumers",
+  "invert_battery_flows",
 ];
 
 const schema = [
@@ -63,6 +64,10 @@ const schema = [
       },
       {
         name: "hide_small_consumers",
+        selector: { boolean: {} }
+      },
+      {
+        name: "invert_battery_flows",
         selector: { boolean: {} }
       }
     ]
@@ -108,6 +113,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     if (!this.hass || !this._config) {
       return nothing;
     }
+    const customLocalize = setupCustomlocalize(this.hass!);
     // Unused feature - may be reinstated if we allow renaming sub-elements.
     //  if (this._subElementEditorConfig) {
     //   return html`
@@ -122,6 +128,10 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     // }
 
     const data = { ...this._config } as any;
+
+    const batteryHint = data.invert_battery_flows 
+      ? customLocalize(`editor.card.power_sankey.battery_hint_inverted`)
+      : customLocalize(`editor.card.power_sankey.battery_hint_std`);
     return html`
       <ha-form
         .hass=${this.hass}
@@ -134,7 +144,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         .hass=${this.hass}
         id="battery-entities"
         label="Battery Entities (Optional)"
-        subLabel="Power from battery (one combined in/out per battery, positive = discharging)"
+        subLabel=${batteryHint}
         .entities=${this._configBatteryEntities}
         includeDeviceClasses=${["power"]}
         @entities-changed=${this._valueChanged}
@@ -203,6 +213,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         != this._config.hide_small_consumers) {
         configValue = "hide_small_consumers";
         value = value.hide_small_consumers;
+      }
+      else if (value.invert_battery_flows
+        != this._config.invert_battery_flows) {
+        configValue = "invert_battery_flows";
+        value = value.invert_battery_flows;
       }
       else {
         console.warn("unhandled change in <ha-form>");
