@@ -386,7 +386,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         }
         // power in refers to power into the energy distribution system
         // (i.e. out of the battery)
-        let powerIn = computePower(stateObj) 
+        let powerIn = (this._config.invert_battery_flows ? -1 : 1) 
+          * computePower(stateObj);
         batteryRoutes[entity.entity] = {
           in: {
             id: entity.entity,

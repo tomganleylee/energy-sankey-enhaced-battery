@@ -10,7 +10,10 @@
         "power_from_grid_entity": "Power from grid",
         "group_small": "Group low values together",
         "generation_entity": "Power from generation (optional)",
-        "hide_small_consumers": "Group consumers below 100W"
+        "hide_small_consumers": "Group consumers below 100W",
+        "invert_battery_flows": "Battery flows are positive for charging",
+        "battery_hint_std": "Power from battery (one combined in/out per battery, positive = discharging)",
+        "battery_hint_inverted": "Power to battery (one combined in/out per battery, positive = charging)"
       },
       "energy_sankey": {
         "hide_small_consumers": "Group consumers below 0.1kWh"
