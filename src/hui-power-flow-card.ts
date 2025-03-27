@@ -30,12 +30,20 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   }
   let newConfig = { ...config };
 
-  if (!config.config_version) {
+  let currentVersion = config.config_version || 0;
+
+  if (currentVersion === 0) {
     console.log("Migrating config from ? to version 1");
-    newConfig.config_version = 1;
+    currentVersion = 1;
     newConfig.battery_entities = newConfig.battery_entities || [];
     newConfig.hide_small_consumers = newConfig.hide_small_consumers || false;
     newConfig.max_consumer_branches = newConfig.max_consumer_branches || 0;
+  }
+  if (currentVersion === 1) {
+    // Migrate from version 1 to version 2
+    console.log("Migrating config from version 1 to version 2");
+    currentVersion = 2;
+    newConfig.invert_battery_flows = false;
   }
 
   if (
@@ -46,6 +54,7 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   ) {
     throw new Error("Must specify at least one entity");
   }
+  newConfig.config_version = currentVersion;
 
   return newConfig;
 }
