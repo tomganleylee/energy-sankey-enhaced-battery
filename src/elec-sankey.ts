@@ -611,7 +611,7 @@ export class ElecSankey extends LitElement {
     x =
       this._gridExport +
       generationToBatteriesTemp -
-      (generationTrackedTotal + gridToBatteriesTemp);
+      (generationTrackedTotal + gridToBatteriesTemp + batteryInTotal);
     if (x > 0) {
       phantomGeneration = x;
     }
