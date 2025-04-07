@@ -493,28 +493,18 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     css`
       ha-card {
         height: 100%;
-        padding: 16px;
         align-items: center;
         justify-content: center;
         flex-direction: column;
         box-sizing: border-box;
-      }
-      ha-card:focus {
-        outline: none;
+        padding-bottom: 16px;
       }
       ha-elec-sankey {
         --generation-color: var(--energy-solar-color);
         --grid-in-color: var(--energy-grid-consumption-color);
         --batt-in-color: var(--energy-battery-out-color);
       }
-      .name {
-        text-align: center;
-        line-height: initial;
-        color: var(--primary-text-color);
-        width: 100%;
-        font-size: 15px;
-        margin-top: 8px;
-      }
+
     `,
   ];
 }

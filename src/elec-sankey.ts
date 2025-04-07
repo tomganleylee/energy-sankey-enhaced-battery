@@ -2105,6 +2105,7 @@ export class ElecSankey extends LitElement {
       flex: 1;
       min-width: 80px;
       max-width: 120px;
+      padding: 0px 16px 0px 0px;
     }
     .col3top {
       height: 60px;
