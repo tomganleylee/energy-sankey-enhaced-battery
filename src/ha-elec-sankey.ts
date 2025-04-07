@@ -85,6 +85,20 @@ export class HaElecSankey extends ElecSankey {
   static styles: CSSResultArray = [
     ElecSankey.styles,
     css`
+      ha-card:focus {
+        outline: none;
+      }
+      .card-header {
+        padding-bottom: 0;
+      }
+      .name {
+        text-align: center;
+        line-height: initial;
+        color: var(--primary-text-color);
+        width: 100%;
+        font-size: 15px;
+        margin-top: 8px;
+      }
       .label {
         font-size: 12px;
       }

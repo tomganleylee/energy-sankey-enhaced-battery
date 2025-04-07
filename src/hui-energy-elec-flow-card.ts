@@ -229,18 +229,19 @@ export class HuiEnergyElecFlowCard
   }
 
   static styles = css`
-    ha-card {
-      height: 100%;
-      padding: 16px;
-    }
-    .card-header {
-      padding-bottom: 0;
-    }
-    ha-elec-sankey {
-      --generation-color: var(--energy-solar-color);
-      --grid-in-color: var(--energy-grid-consumption-color);
-      --batt-in-color: var(--energy-battery-out-color);
-    }
+      ha-card {
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        box-sizing: border-box;
+        padding-bottom: 16px;
+      }
+      ha-elec-sankey {
+        --generation-color: var(--energy-solar-color);
+        --grid-in-color: var(--energy-grid-consumption-color);
+        --batt-in-color: var(--energy-battery-out-color);
+      }
   `;
 }
 
