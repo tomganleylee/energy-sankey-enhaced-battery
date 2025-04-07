@@ -733,13 +733,12 @@ export class ElecSankey extends LitElement {
             rate: phantomGeneration,
           }
         : undefined;
-    if (untrackedConsumer > 0) {
-      this._untrackedConsumerRoute = {
-        id: "untracked",
-        text: "Untracked",
-        rate: untrackedConsumer,
-      };
-    }
+    this._untrackedConsumerRoute = {
+      id: "untracked",
+      text: "Untracked",
+      rate: untrackedConsumer > 0 ? untrackedConsumer : 0,
+    };
+    
 
     /**
      * Calculate and update a scaling factor to make the UI look sensible.
