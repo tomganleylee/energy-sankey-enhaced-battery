@@ -1,6 +1,6 @@
 import { mdiSolarPower } from "@mdi/js";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { css, html, LitElement, nothing } from "lit";
+import { css, CSSResultArray, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 
@@ -228,7 +228,8 @@ export class HuiEnergyElecFlowCard
 
   }
 
-  static styles = css`
+  static styles: CSSResultArray = [
+    css`
       ha-card {
         height: 100%;
         align-items: center;
@@ -242,7 +243,8 @@ export class HuiEnergyElecFlowCard
         --grid-in-color: var(--energy-grid-consumption-color);
         --batt-in-color: var(--energy-battery-out-color);
       }
-  `;
+    `,
+  ];
 }
 
 declare global {
