@@ -28,17 +28,26 @@ The colour* of the flows heading to the consumers represents the blend of locall
 
 The diagram dynamically scales to fit the size of the window it is in (mostly).
 
-# Installation
- - Open HACS and add the custom repository https://github.com/davet2001/energy-sankey <!--  - Open HACS and search for Energy Sankey  -->
- - Click on the repository and select download
+## Installation (the easy way)
+
+If you've already installed HACS (https://hacs.xyz/), click this button and then click download!
+
+[![Open your Home Assistant instance and open the energy-sankey repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=davet2001&repository=energy-sankey&category=dashboard)
+
+## Installation via HACS
+ - Install HACS in your Home Assisstant installation (see https://hacs.xyz/ for detailed instructions)
+ - Navigate to HACS within your Home Assistant instance (Menu > HACS)
+ - In the search box type 'Energy Sankey'
+ - Click on **Energy Sankey Card**
+ - Click Download
  - Reload when prompted
  - Select a dashboard and enter editing mode
  - Type 'Sankey' in the search box
- - Select 'Custom: Sankey Energy Flow Card' or 'Custom: Sankey Power Flow Card'
+ - Select 'Sankey Energy Flow Card' or 'Sankey Power Flow Card'
    - The energy card does not require configuration
    - The power card auto configures. If there are any problems with autoconfiguration, use built in card editor to select the correct power entities for grid input / generation / consumers / batteries.
 
-Outstanding issues to solve:
+## Outstanding issues to solve:
 - [ ] Sometimes there are thin dark lines between the blocks that make up the shapes, I believe this is caused by antialiasing, but I don't see an easy way of reducing/eliminating it, especially where the shapes are across two divs.
 - [ ] There are probably more edge cases to experiment with, such as multiple generation sources, grid configured with only input or output, and either of those being negative to represent flow in the opposite direction.
 - [ ] *Configurable time range is not yet implemented
