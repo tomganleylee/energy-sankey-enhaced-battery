@@ -1408,8 +1408,9 @@ export class ElecSankey extends LitElement {
 
     if (this.hideConsumersBelow > 0) {
       for (const key in consumerRoutes) {
-        if (consumerRoutes[key].rate < this.hideConsumersBelow) {
-          groupedConsumer.rate += consumerRoutes[key].rate;
+        let rate = consumerRoutes[key].rate || 0; // Treat undef/NaN as 0
+        if (rate < this.hideConsumersBelow) {
+          groupedConsumer.rate += rate;
           groupedConsumerExists = true;
           delete consumerRoutes[key];
         }
