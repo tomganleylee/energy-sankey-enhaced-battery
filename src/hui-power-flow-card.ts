@@ -20,7 +20,7 @@ import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/type
 import type { PowerFlowCardConfig } from "./types";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
 import { registerCustomCard } from "./utils/custom-cards";
-import { getEnergyPreferences } from "./ha/data/energy";
+import { DeviceConsumptionEnergyPreference, getEnergyPreferences } from "./ha/data/energy";
 import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/data/entity_registry";
 //import "./power-flow-card-editor"
 
@@ -258,8 +258,21 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
           break;
       }
     };
+
+    // Filter out consumers that are higher level measurements in the hierarchy
+    let consumerBlacklist: string[] = [];
+    const consumers = energyPrefs.device_consumption;
+    for (const consumer of consumers) {
+      if (consumer.included_in_stat !== undefined) {
+        consumerBlacklist.push(consumer.included_in_stat);
+      }
+    }
+
     // Parse energy consumers from HA's energy prefs
-    for (const consumer of energyPrefs.device_consumption) {
+    for (const consumer of consumers) {
+      if (consumerBlacklist.includes(consumer.stat_consumption)) {
+        continue;
+      }
       if (!returnConfig.consumer_entities) {
         returnConfig.consumer_entities = [];
       }
