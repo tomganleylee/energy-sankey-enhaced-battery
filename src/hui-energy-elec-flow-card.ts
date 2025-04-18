@@ -176,7 +176,18 @@ export class HuiEnergyElecFlowCard
     const consumers: DeviceConsumptionEnergyPreference[] = energyData.prefs
       .device_consumption as DeviceConsumptionEnergyPreference[];
 
-    consumers.forEach((consumer) => {
+    // Filter out consumers that are higher level measurements in the hierarchy
+    let consumerBlacklist: string[] = [];
+    consumers.forEach((consumer: DeviceConsumptionEnergyPreference) => {
+      if (consumer.included_in_stat !== undefined) {
+        consumerBlacklist.push(consumer.included_in_stat);
+      }
+    });
+    
+    consumers.forEach((consumer: DeviceConsumptionEnergyPreference) => {
+      if (consumerBlacklist.includes(consumer.stat_consumption)) {
+        return;
+      }
       const label = consumer.name || getStatisticLabel(
         this.hass,
         consumer.stat_consumption,
