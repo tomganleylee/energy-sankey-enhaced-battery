@@ -1424,10 +1424,10 @@ export class ElecSankey extends LitElement {
         consumerRoutes = this.consumerRoutes;
         const sortedConsumerRoutes: ElecRoute[] = Object.values(
           this.consumerRoutes
-        ).sort((a, b) => a.rate - b.rate);
+        ).sort((a, b) => (a.rate || 0) - (b.rate || 0));
         sortedConsumerRoutes.forEach((route) => {
           if (otherCount > 0) {
-            groupedConsumer.rate += route.rate;
+            groupedConsumer.rate += route.rate || 0;
             groupedConsumerExists = true;
             if (route.id) {
               delete consumerRoutes[route.id];
