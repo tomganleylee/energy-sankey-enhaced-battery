@@ -23,6 +23,7 @@ import { verifyAndMigrateConfig } from "./hui-power-flow-card";
 
 const POWER_LABELS = [
   "power_from_grid_entity",
+  "power_to_grid_entity",
   "generation_entity",
   "hide_small_consumers",
   "invert_battery_flows",
@@ -32,6 +33,14 @@ const schema = [
   { name: "title", selector: { text: {} } },
   {
     name: "power_from_grid_entity", selector: {
+      entity: {
+        domain: "sensor",
+        device_class: "power",
+      }
+    }
+  },
+  {
+    name: "power_to_grid_entity", selector: {
       entity: {
         domain: "sensor",
         device_class: "power",
@@ -198,6 +207,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         !== this._config.power_from_grid_entity) {
         configValue = "power_from_grid_entity";
         value = value.power_from_grid_entity;
+      }
+      else if (value.power_to_grid_entity
+        !== this._config.power_to_grid_entity) {
+        configValue = "power_to_grid_entity";
+        value = value.power_to_grid_entity;
       }
       else if (value.generation_entity
         !== this._config.generation_entity) {

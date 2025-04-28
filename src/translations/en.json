@@ -7,7 +7,8 @@
        "appearance": "Appearance"
       },
       "power_sankey": {
-        "power_from_grid_entity": "Power from grid",
+        "power_from_grid_entity": "Power from grid (optional)",
+        "power_to_grid_entity": "Power to grid (optional)",
         "group_small": "Group low values together",
         "generation_entity": "Power from generation (optional)",
         "hide_small_consumers": "Group consumers below 100W",
