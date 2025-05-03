@@ -301,7 +301,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     const maxConsumerBranches = this._config.max_consumer_branches || 0;
-
     const hideConsumersBelow = this._config.hide_small_consumers
       ? HIDE_CONSUMERS_BELOW_THRESHOLD_W : 0;
     const batteryChargeOnlyFromGeneration = 
