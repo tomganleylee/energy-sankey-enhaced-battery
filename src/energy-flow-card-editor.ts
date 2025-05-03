@@ -14,6 +14,7 @@ import setupCustomlocalize from "./localize";
 
 const ENERGY_LABELS = [
   "hide_small_consumers",
+  "battery_charge_only_from_generation",
 ]
 const schema = [
   { name: "title", selector: { text: {} } },
@@ -37,7 +38,12 @@ const schema = [
       {
         name: "hide_small_consumers",
         selector: { boolean: {} }
+      },
+      {
+        name: "battery_charge_only_from_generation",
+        selector: { boolean: {} }
       }
+
     ]
   }
 ];

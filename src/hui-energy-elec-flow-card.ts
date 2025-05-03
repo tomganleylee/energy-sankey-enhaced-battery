@@ -95,6 +95,8 @@ export class HuiEnergyElecFlowCard
     const maxConsumerBranches = this._config.max_consumer_branches || 0;
     const hideConsumersBelow = this._config.hide_small_consumers
       ? HIDE_CONSUMERS_BELOW_THRESHOLD_KWH : 0;
+    const batteryChargeOnlyFromGeneration = 
+      this._config.battery_charge_only_from_generation || false;
     return html`
       <ha-card>
         ${this._config.title
@@ -114,6 +116,7 @@ export class HuiEnergyElecFlowCard
             .batteryRoutes=${this._batteryRoutes || {}} 
             .maxConsumerBranches=${maxConsumerBranches}
             .hideConsumersBelow=${hideConsumersBelow}
+            .batteryChargeOnlyFromGeneration=${batteryChargeOnlyFromGeneration}
           ></ha-elec-sankey>
         </div>
       </ha-card>

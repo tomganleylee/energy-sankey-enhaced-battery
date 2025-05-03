@@ -301,9 +301,10 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     const maxConsumerBranches = this._config.max_consumer_branches || 0;
-
     const hideConsumersBelow = this._config.hide_small_consumers
       ? HIDE_CONSUMERS_BELOW_THRESHOLD_W : 0;
+    const batteryChargeOnlyFromGeneration = 
+        this._config.battery_charge_only_from_generation || false;
 
     let gridInRoute: ElecRoute | null = null;
     if (config.power_from_grid_entity) {
@@ -444,6 +445,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             .batteryRoutes=${batteryRoutes}
             .maxConsumerBranches=${maxConsumerBranches}
             .hideConsumersBelow=${hideConsumersBelow}
+            .batteryChargeOnlyFromGeneration=${batteryChargeOnlyFromGeneration}
           ></ha-elec-sankey>
         </div>
       </ha-card>

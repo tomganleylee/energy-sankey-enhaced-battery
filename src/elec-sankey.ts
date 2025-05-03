@@ -431,6 +431,9 @@ export class ElecSankey extends LitElement {
   @property({ attribute: false })
   public hideConsumersBelow: number = 0;
 
+  @property({ attribute: false })
+  public batteryChargeOnlyFromGeneration: boolean = false;
+
   private _rateToWidthMultplier: number = 0.2;
 
   private _phantomGridInRoute?: ElecRoute;
@@ -599,15 +602,25 @@ export class ElecSankey extends LitElement {
     // Whatever battery out is not going to the grid must be going to consumers.
     let batteriesToConsumersTemp = batteryInTotal - batteriesToGridTemp;
 
-    // We then proceed on the basis that the full flow into the battery is
-    // coming from the grid (as far as the grid input allows). If there is
-    // more flow coming into the batteries than the grid would allow, we
-    // assume that the additional flow is coming from generation.
-    if (gridImport > batteriesOutTotal) {
-      gridToBatteriesTemp = batteriesOutTotal;
+    // The user can specify that their batteries are only charged from 
+    // generation. 
+    if (this.batteryChargeOnlyFromGeneration) {
+      // In this case, we assume that all the flow into the
+      // batteries is coming from generation, and the grid is not contributing
+      // at all.
+      gridToBatteriesTemp = 0;
+      generationToBatteriesTemp = batteriesOutTotal;
     } else {
-      gridToBatteriesTemp = gridImport;
-      generationToBatteriesTemp = batteriesOutTotal - gridToBatteriesTemp;
+      // Otherwise, we proceed on the basis that the full flow into the battery 
+      // is coming from the grid (as far as the grid input allows). If there is
+      // more flow coming into the batteries than the grid would allow, we
+      // assume that the additional flow is coming from generation.
+      if (gridImport > batteriesOutTotal) {
+        gridToBatteriesTemp = batteriesOutTotal;
+      } else {
+        gridToBatteriesTemp = gridImport;
+        generationToBatteriesTemp = batteriesOutTotal - gridToBatteriesTemp;
+      }
     }
     // If we have exceeded the total generation by doing this, we must
     // recalculate the phantom generation source.
