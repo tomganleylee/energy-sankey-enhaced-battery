@@ -327,7 +327,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     let gridOutRoute: ElecRoute | null = null;
-    if (config.power_to_grid_entity) {
+    if (config.independent_grid_in_out && config.power_to_grid_entity) {
       const stateObj = this.hass.states[config.power_to_grid_entity];
       if (!stateObj) {
         return html`

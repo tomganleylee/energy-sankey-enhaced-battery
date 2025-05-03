@@ -10,6 +10,7 @@ export const HIDE_CONSUMERS_BELOW_THRESHOLD_KWH = 0.1;
 
 export const GENERIC_LABELS = [
     "appearance",
+    "advanced_options",
     "title",
     "max_consumer_branches",
 ];

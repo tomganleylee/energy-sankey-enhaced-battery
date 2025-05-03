@@ -4,7 +4,8 @@
       "generic": {
        "title": "Title",
        "max_consumer_branches": "Limit quantity of consumer branches (0 for unlimited)",
-       "appearance": "Appearance"
+       "appearance": "Appearance",
+       "advanced_options": "Advanced Options"
       },
       "power_sankey": {
         "power_from_grid_entity": "Power from grid (optional)",
@@ -14,7 +15,8 @@
         "hide_small_consumers": "Group consumers below 100W",
         "invert_battery_flows": "Battery flows are positive for charging",
         "battery_hint_std": "Power from battery (one combined in/out per battery, positive = discharging)",
-        "battery_hint_inverted": "Power to battery (one combined in/out per battery, positive = charging)"
+        "battery_hint_inverted": "Power to battery (one combined in/out per battery, positive = charging)",
+        "independent_grid_in_out": "Use separate sensors for grid in/out"
       },
       "energy_sankey": {
         "hide_small_consumers": "Group consumers below 0.1kWh"

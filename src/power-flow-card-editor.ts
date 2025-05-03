@@ -17,7 +17,7 @@ import type {
 import { GENERIC_LABELS, POWER_CARD_EDITOR_NAME } from "./const";
 import { EntityConfig, LovelaceRowConfig } from "./ha/panels/lovelace/entity-rows/types";
 import { processEditorEntities } from "./ha/panels/lovelace/editor/process-editor-entities";
-import { mdiPalette } from "@mdi/js";
+import { mdiPalette, mdiWrench } from "@mdi/js";
 import setupCustomlocalize from "./localize";
 import { verifyAndMigrateConfig } from "./hui-power-flow-card";
 
@@ -27,60 +27,7 @@ const POWER_LABELS = [
   "generation_entity",
   "hide_small_consumers",
   "invert_battery_flows",
-];
-
-const schema = [
-  { name: "title", selector: { text: {} } },
-  {
-    name: "power_from_grid_entity", selector: {
-      entity: {
-        domain: "sensor",
-        device_class: "power",
-      }
-    }
-  },
-  {
-    name: "power_to_grid_entity", selector: {
-      entity: {
-        domain: "sensor",
-        device_class: "power",
-      }
-    }
-  },
-  {
-    name: "generation_entity", selector: {
-      entity: {
-        domain: "sensor",
-        device_class: "power",
-      }
-    }
-  },
-  {
-    name: "appearance",
-    flatten: true,
-    type: "expandable",
-    iconPath: mdiPalette,
-    schema: [
-      {
-        name: "max_consumer_branches",
-        selector: {
-          number: {
-            min: 0,
-            max: 10,
-            mode: "slider",
-          }
-        }
-      },
-      {
-        name: "hide_small_consumers",
-        selector: { boolean: {} }
-      },
-      {
-        name: "invert_battery_flows",
-        selector: { boolean: {} }
-      }
-    ]
-  }
+  "independent_grid_in_out",
 ];
 
 @customElement(POWER_CARD_EDITOR_NAME)
@@ -95,6 +42,77 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   @state() private _configBatteryEntities: EntityConfig[] = []
 
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
+
+  private _computeSchema(): Array<any> {
+    const showSeparateToGridOption = this._config?.independent_grid_in_out;
+    return [
+      { name: "title", selector: { text: {} } },
+      {
+        name: "power_from_grid_entity", selector: {
+          entity: {
+            domain: "sensor",
+            device_class: "power",
+          }
+        }
+      },
+      ... showSeparateToGridOption ? [
+        {
+          name: "power_to_grid_entity", selector: {
+            entity: {
+              domain: "sensor",
+              device_class: "power",
+            }
+          }
+        }
+      ] : [],
+      {
+        name: "generation_entity", selector: {
+          entity: {
+            domain: "sensor",
+            device_class: "power",
+          }
+        }
+      },
+      {
+        name: "appearance",
+        flatten: true,
+        type: "expandable",
+        iconPath: mdiPalette,
+        schema: [
+          {
+            name: "max_consumer_branches",
+            selector: {
+              number: {
+                min: 0,
+                max: 10,
+                mode: "slider",
+              }
+            }
+          },
+          {
+            name: "hide_small_consumers",
+            selector: { boolean: {} }
+          },
+          {
+            name: "invert_battery_flows",
+            selector: { boolean: {} }
+          },
+        ]
+      },
+      {
+        name: "advanced_options",
+        flatten: true,
+        type: "expandable",
+        iconPath: mdiWrench,
+        schema: [
+          {
+            name: "independent_grid_in_out",
+            selector: { boolean: {} }
+          }
+        ]
+      },
+    ];
+  }
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = verifyAndMigrateConfig(config);
@@ -145,7 +163,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       <ha-form
         .hass=${this.hass}
         .data=${data}
-        .schema=${schema}
+        .schema=${this._computeSchema()}
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}
       ></ha-form>
@@ -232,6 +250,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         != this._config.invert_battery_flows) {
         configValue = "invert_battery_flows";
         value = value.invert_battery_flows;
+      }
+      else if (value.independent_grid_in_out
+        != this._config.independent_grid_in_out) {
+        configValue = "independent_grid_in_out";
+        value = value.independent_grid_in_out;
       }
       else {
         console.warn("unhandled change in <ha-form>");
