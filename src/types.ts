@@ -4,6 +4,7 @@ import { LovelaceCardConfig } from "./ha/data/lovelace/config/card";
 export interface EnergyElecFlowCardConfig extends LovelaceCardConfig {
   title?: string;
   collection_key?: string;
+  battery_charge_only_from_generation?: boolean;
 }
 
 export interface PowerFlowCardConfig extends LovelaceCardConfig {

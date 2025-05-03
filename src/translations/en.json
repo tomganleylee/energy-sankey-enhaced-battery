@@ -20,7 +20,8 @@
         "independent_grid_in_out": "Use separate sensors for grid in/out"
       },
       "energy_sankey": {
-        "hide_small_consumers": "Group consumers below 0.1kWh"
+        "hide_small_consumers": "Group consumers below 0.1kWh",
+        "battery_charge_only_from_generation": "Batteries can only charge from generated energy"
       }
     }
   }
