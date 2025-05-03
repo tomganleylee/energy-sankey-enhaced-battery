@@ -11,6 +11,8 @@ export interface PowerFlowCardConfig extends LovelaceCardConfig {
   power_from_grid_entity?: string;
   power_to_grid_entity?: string;
   generation_entity?: string;
+  hide_small_consumers?: boolean;
+  independent_grid_in_out?: boolean;
   consumer_entities: {
     entity: string;
     name?: string;

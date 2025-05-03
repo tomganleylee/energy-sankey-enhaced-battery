@@ -483,6 +483,9 @@ export class ElecSankey extends LitElement {
     if (this.gridInRoute) {
       return this.gridInRoute.rate > 0 ? this.gridInRoute.rate : 0;
     }
+    else if (this.gridOutRoute) {
+      return this.gridOutRoute.rate < 0 ? -this.gridOutRoute.rate : 0;
+    }
     return 0;
   }
 
@@ -1071,7 +1074,8 @@ export class ElecSankey extends LitElement {
     y10: number,
     svgScaleX: number = 1
   ): [TemplateResult | symbol, TemplateResult | symbol] {
-    if (!this.gridInRoute) {
+    const gridRoute = this.gridInRoute ? this.gridInRoute : this.gridOutRoute;
+    if (!gridRoute) {
       return [nothing, nothing];
     }
     const arrow_head_length = ARROW_HEAD_LENGTH / svgScaleX;
@@ -1089,7 +1093,7 @@ export class ElecSankey extends LitElement {
       top: ${midY * svgScaleX}px; margin: ${-divHeight / 2}px 0 0 0px;"
     >
       ${this._generateLabelDiv(
-        this.gridInRoute.id,
+        gridRoute.id,
         mdiTransmissionTower,
         undefined,
         rateA,
