@@ -27,6 +27,7 @@ const POWER_LABELS = [
   "generation_entity",
   "hide_small_consumers",
   "invert_battery_flows",
+  "battery_charge_only_from_generation",
   "independent_grid_in_out",
 ];
 
@@ -95,6 +96,10 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
           },
           {
             name: "invert_battery_flows",
+            selector: { boolean: {} }
+          },
+          {
+            name: "battery_charge_only_from_generation",
             selector: { boolean: {} }
           },
         ]
@@ -250,6 +255,11 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         != this._config.invert_battery_flows) {
         configValue = "invert_battery_flows";
         value = value.invert_battery_flows;
+      }
+      else if (value.battery_charge_only_from_generation
+        != this._config.battery_charge_only_from_generation) {
+        configValue = "battery_charge_only_from_generation";
+        value = value.battery_charge_only_from_generation;
       }
       else if (value.independent_grid_in_out
         != this._config.independent_grid_in_out) {
