@@ -775,6 +775,7 @@ export class ElecSankey extends LitElement {
 
     this._batteriesToGridRate = batteriesToGridTemp;
     this._batteriesToConsumersRate = batteriesToConsumersTemp;
+    const batteriesTotal = batteriesToGridTemp + batteriesToConsumersTemp;
 
     this._generationToConsumersRate = generationToConsumersTemp;
     this._generationToBatteriesRate = generationToBatteriesTemp;
@@ -783,7 +784,8 @@ export class ElecSankey extends LitElement {
     this._gridToBatteriesRate = gridToBatteriesTemp;
     this._gridToConsumersRate = gridToConsumersTemp;
 
-    const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 1.0);
+    const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 
+      batteriesTotal, 1.0);
     this._rateToWidthMultplier = TARGET_SCALED_TRUNK_WIDTH / widest_trunk;
   }
 
