@@ -70,6 +70,9 @@ const SVG_LHS_VISIBLE_WIDTH = 110;
 
 export const PAD_ANTIALIAS = 0.5;
 
+const UNTRACKED_ID = "untracked";
+const OTHER_ID = "other";
+
 export interface ElecRoute {
   id?: string;
   text?: string;
@@ -750,7 +753,7 @@ export class ElecSankey extends LitElement {
           }
         : undefined;
     this._untrackedConsumerRoute = {
-      id: "untracked",
+      id: UNTRACKED_ID,
       text: "Untracked",
       rate: untrackedConsumer > 0 ? untrackedConsumer : 0,
     };
@@ -1383,6 +1386,8 @@ export class ElecSankey extends LitElement {
       consumer
     );
 
+    const id = [UNTRACKED_ID, OTHER_ID].includes(consumer.id ?? "") 
+      ? undefined : consumer.id;
     const divHeight = CONSUMER_LABEL_HEIGHT;
     const divRet = html`<div
       class="label elecroute-label-consumer"
@@ -1391,7 +1396,7 @@ export class ElecSankey extends LitElement {
       (count * divHeight) / 2}px; margin: ${-divHeight / 2}px 0 0 0;"
     >
       ${this._generateLabelDiv(
-        consumer.id,
+        id,
         undefined,
         consumer.text,
         consumer.rate
@@ -1417,7 +1422,7 @@ export class ElecSankey extends LitElement {
     consumerRoutes = structuredClone(this.consumerRoutes);
 
     let groupedConsumer: ElecRoute = {
-      id: "other",
+      id: OTHER_ID,
       text: "Other",
       rate: 0,
     };
