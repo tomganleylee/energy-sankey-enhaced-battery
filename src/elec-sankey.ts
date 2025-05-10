@@ -1414,7 +1414,12 @@ export class ElecSankey extends LitElement {
 
   private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
     let consumerRoutes: { [id: string]: ElecRoute } = {};
-    consumerRoutes = structuredClone(this.consumerRoutes);
+    const entries: Array<[string, ElecRoute]> 
+      = Object.entries(this.consumerRoutes);
+    entries.sort(([,routeA], [, routeB]) => routeB.rate - routeA.rate);
+    for (const [key, val] of Object.entries(entries)) {
+      consumerRoutes[key] = val[1];
+    }    
 
     let groupedConsumer: ElecRoute = {
       id: "other",
