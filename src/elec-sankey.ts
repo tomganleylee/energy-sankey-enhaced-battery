@@ -488,8 +488,7 @@ export class ElecSankey extends LitElement {
   private _gridImport(): number {
     if (this.gridInRoute) {
       return this.gridInRoute.rate > 0 ? this.gridInRoute.rate : 0;
-    }
-    else if (this.gridOutRoute) {
+    } else if (this.gridOutRoute) {
       return this.gridOutRoute.rate < 0 ? -this.gridOutRoute.rate : 0;
     }
     return 0;
@@ -605,8 +604,8 @@ export class ElecSankey extends LitElement {
     // Whatever battery out is not going to the grid must be going to consumers.
     let batteriesToConsumersTemp = batteryInTotal - batteriesToGridTemp;
 
-    // The user can specify that their batteries are only charged from 
-    // generation. 
+    // The user can specify that their batteries are only charged from
+    // generation.
     if (this.batteryChargeOnlyFromGeneration) {
       // In this case, we assume that all the flow into the
       // batteries is coming from generation, and the grid is not contributing
@@ -614,7 +613,7 @@ export class ElecSankey extends LitElement {
       gridToBatteriesTemp = 0;
       generationToBatteriesTemp = batteriesOutTotal;
     } else {
-      // Otherwise, we proceed on the basis that the full flow into the battery 
+      // Otherwise, we proceed on the basis that the full flow into the battery
       // is coming from the grid (as far as the grid input allows). If there is
       // more flow coming into the batteries than the grid would allow, we
       // assume that the additional flow is coming from generation.
@@ -757,7 +756,6 @@ export class ElecSankey extends LitElement {
       text: "Untracked",
       rate: untrackedConsumer > 0 ? untrackedConsumer : 0,
     };
-    
 
     /**
      * Calculate and update a scaling factor to make the UI look sensible.
@@ -784,8 +782,13 @@ export class ElecSankey extends LitElement {
     this._gridToBatteriesRate = gridToBatteriesTemp;
     this._gridToConsumersRate = gridToConsumersTemp;
 
-    const widest_trunk = Math.max(genTotal, gridInTotal, consumerTotal, 
-      batteriesTotal, 1.0);
+    const widest_trunk = Math.max(
+      genTotal,
+      gridInTotal,
+      consumerTotal,
+      batteriesTotal,
+      1.0
+    );
     this._rateToWidthMultplier = TARGET_SCALED_TRUNK_WIDTH / widest_trunk;
   }
 
@@ -1388,8 +1391,9 @@ export class ElecSankey extends LitElement {
       consumer
     );
 
-    const id = [UNTRACKED_ID, OTHER_ID].includes(consumer.id ?? "") 
-      ? undefined : consumer.id;
+    const id = [UNTRACKED_ID, OTHER_ID].includes(consumer.id ?? "")
+      ? undefined
+      : consumer.id;
     const divHeight = CONSUMER_LABEL_HEIGHT;
     const divRet = html`<div
       class="label elecroute-label-consumer"
@@ -1397,12 +1401,7 @@ export class ElecSankey extends LitElement {
       top: ${yEnd * svgScaleX -
       (count * divHeight) / 2}px; margin: ${-divHeight / 2}px 0 0 0;"
     >
-      ${this._generateLabelDiv(
-        id,
-        undefined,
-        consumer.text,
-        consumer.rate
-      )}
+      ${this._generateLabelDiv(id, undefined, consumer.text, consumer.rate)}
     </div>`;
 
     const svgRet = svg`
@@ -1421,12 +1420,13 @@ export class ElecSankey extends LitElement {
 
   private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
     let consumerRoutes: { [id: string]: ElecRoute } = {};
-    const entries: Array<[string, ElecRoute]> 
-      = Object.entries(this.consumerRoutes);
-    entries.sort(([,routeA], [, routeB]) => routeB.rate - routeA.rate);
+    const entries: Array<[string, ElecRoute]> = Object.entries(
+      this.consumerRoutes
+    );
+    entries.sort(([, routeA], [, routeB]) => routeB.rate - routeA.rate);
     for (const [key, val] of Object.entries(entries)) {
       consumerRoutes[key] = val[1];
-    }    
+    }
 
     let groupedConsumer: ElecRoute = {
       id: OTHER_ID,
