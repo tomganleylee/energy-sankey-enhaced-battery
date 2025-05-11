@@ -410,6 +410,10 @@ function renderBlendRect(
 
 @customElement("elec-sankey")
 export class ElecSankey extends LitElement {
+  // Extras can be added in to the left of the arrow by extending this
+  // class and overriding extrasLength.
+  static extrasLength = 0;
+
   @property()
   public unit: string = "kWh";
 
@@ -1348,14 +1352,18 @@ export class ElecSankey extends LitElement {
     return svgRet;
   }
 
+  protected _getExtrasLength(): number {
+    return (<typeof ElecSankey>this.constructor).extrasLength;
+  }
+
   protected _insertExtras(
     _topLeftX: number,
     _topLeftY: number,
     _width: number,
     _color: string,
     _route: ElecRoute
-  ): [number, TemplateResult] {
-    return [0, svg``];
+  ): TemplateResult {
+    return svg``;
   }
 
   protected _renderConsumerFlow(
@@ -1367,7 +1375,14 @@ export class ElecSankey extends LitElement {
     color: string,
     svgScaleX: number = 1,
     count: number = 1
-  ): [TemplateResult, TemplateResult, number, number] {
+  ): [
+    TemplateResult,
+    TemplateResult,
+    TemplateResult,
+    TemplateResult,
+    number,
+    number
+  ] {
     const width = this._rateToWidth(consumer.rate);
     const xEnd = topRightX;
     const yEnd = topRightY + width / 2;
@@ -1383,7 +1398,8 @@ export class ElecSankey extends LitElement {
       "consumer",
       color
     );
-    const [extrasLength, svgExtras] = this._insertExtras(
+    const extrasLength = this._getExtrasLength();
+    const svgExtras = this._insertExtras(
       topRightX,
       topRightY,
       width,
@@ -1404,18 +1420,16 @@ export class ElecSankey extends LitElement {
       ${this._generateLabelDiv(id, undefined, consumer.text, consumer.rate)}
     </div>`;
 
-    const svgRet = svg`
-      ${svgFlow}
-      ${svgExtras}
-      <polygon points="${xEnd + extrasLength},${yEnd - width / 2}
-        ${xEnd + extrasLength},${yEnd + width / 2}
-        ${xEnd + extrasLength + ARROW_HEAD_LENGTH},${yEnd}"
+    const svgArrow = svg`
+      <polygon points="${extrasLength},${yEnd - width / 2}
+        ${extrasLength},${yEnd + width / 2}
+        ${extrasLength + ARROW_HEAD_LENGTH},${yEnd}"
         style="fill:${color}" />
     `;
 
     const bottomLeftY = topLeftY + (consumer.rate !== 0 ? width : 0);
     const bottomRightY = topRightY + width;
-    return [divRet, svgRet, bottomLeftY, bottomRightY];
+    return [divRet, svgFlow, svgExtras, svgArrow, bottomLeftY, bottomRightY];
   }
 
   private _getGroupedConsumerRoutes(): { [id: string]: ElecRoute } {
@@ -1477,11 +1491,19 @@ export class ElecSankey extends LitElement {
     y4: number,
     color: string,
     svgScaleX: number
-  ): [Array<TemplateResult>, Array<TemplateResult>, number] {
+  ): [
+    Array<TemplateResult>,
+    Array<TemplateResult>,
+    Array<TemplateResult>,
+    Array<TemplateResult>,
+    number
+  ] {
     const divRetArray: Array<TemplateResult> = [];
-    const svgRetArray: Array<TemplateResult> = [];
+    const svgFlowArray: Array<TemplateResult> = [];
+    const svgExtraArray: Array<TemplateResult> = [];
+    const svgArrowArray: Array<TemplateResult> = [];
     const xLeft = 0;
-    const xRight = 100 - ARROW_HEAD_LENGTH;
+    const xRight = 100;
     let i = 0;
     const consumerRoutes = this._getGroupedConsumerRoutes();
     const count = Object.keys(consumerRoutes).length;
@@ -1492,40 +1514,54 @@ export class ElecSankey extends LitElement {
     if (yRight < TEXT_PADDING) {
       yRight = TEXT_PADDING;
     }
-    let svgRow: TemplateResult;
+    let svgFlow: TemplateResult;
     let divRow: TemplateResult;
+    let svgExtra: TemplateResult;
+    let svgArrow: TemplateResult;
 
     for (const key in consumerRoutes) {
       if (Object.prototype.hasOwnProperty.call(consumerRoutes, key)) {
-        [divRow, svgRow, yLeft, yRight] = this._renderConsumerFlow(
-          xLeft,
-          yLeft,
-          xRight,
-          yRight,
-          consumerRoutes[key],
-          color,
-          svgScaleX,
-          i++
-        );
+        [divRow, svgFlow, svgExtra, svgArrow, yLeft, yRight] =
+          this._renderConsumerFlow(
+            xLeft,
+            yLeft,
+            xRight,
+            yRight,
+            consumerRoutes[key],
+            color,
+            svgScaleX,
+            i++
+          );
         divRetArray.push(divRow);
-        svgRetArray.push(svgRow);
+        svgFlowArray.push(svgFlow);
+        svgExtraArray.push(svgExtra);
+        svgArrowArray.push(svgArrow);
         yRight += gap;
       }
     }
 
-    [divRow, svgRow, yLeft, yRight] = this._renderConsumerFlow(
-      xLeft,
-      yLeft,
-      xRight,
-      yRight,
-      this._untrackedConsumerRoute,
-      color,
-      svgScaleX,
-      i++
-    );
+    [divRow, svgFlow, svgExtra, svgArrow, yLeft, yRight] =
+      this._renderConsumerFlow(
+        xLeft,
+        yLeft,
+        xRight,
+        yRight,
+        this._untrackedConsumerRoute,
+        color,
+        svgScaleX,
+        i++
+      );
     divRetArray.push(divRow);
-    svgRetArray.push(svgRow);
-    return [divRetArray, svgRetArray, yRight + CONSUMER_LABEL_HEIGHT / 2];
+    svgFlowArray.push(svgFlow);
+    svgExtraArray.push(svgExtra);
+    svgArrowArray.push(svgArrow);
+    return [
+      divRetArray,
+      svgFlowArray,
+      svgExtraArray,
+      svgArrowArray,
+      yRight + CONSUMER_LABEL_HEIGHT / 2,
+    ];
   }
 
   protected renderBatteriesInOutFlow(
@@ -1955,12 +1991,13 @@ export class ElecSankey extends LitElement {
       y2,
       svgScaleX
     );
-    const [consOutFlowsDiv, consOutFlowsSvg, y8] = this._renderConsumerFlows(
-      y1,
-      y4,
-      toConsumersBlendColor,
-      svgScaleX
-    );
+    const [
+      consOutFlowsDiv,
+      consOutFlowsSvg,
+      consOutExtrasSvg,
+      consOutArrowsSvg,
+      y8,
+    ] = this._renderConsumerFlows(y1, y4, toConsumersBlendColor, svgScaleX);
     const gridToBattFlowSvg = this.renderGridToBatteriesFlow(
       x10,
       y5,
@@ -2016,6 +2053,7 @@ export class ElecSankey extends LitElement {
       toConsumersBlendColor
     );
     const ymax = Math.max(y4, y8, y22 + 30);
+    const arrowBoxWidth = ARROW_HEAD_LENGTH + this._getExtrasLength();
     return html`<div class="card-content">
       <div class="col1 container">
         <div class="col1top padding"></div>
@@ -2065,6 +2103,17 @@ export class ElecSankey extends LitElement {
               ${consOutFlowsSvg}
             </svg>
           </div>
+          <div class="sankey-far-right">
+            <svg
+              viewBox="0 0 ${arrowBoxWidth} ${ymax}"
+              width="100%"
+              style="min-width: ${arrowBoxWidth}px"
+              height=${ymax * svgScaleX}
+              preserveAspectRatio="none"
+            >
+              ${consOutExtrasSvg} ${consOutArrowsSvg}
+            </svg>
+          </div>
         </div>
       </div>
       <div class="col3 container">
@@ -2074,150 +2123,157 @@ export class ElecSankey extends LitElement {
     </div>`;
   }
 
-  static styles: CSSResultGroup = css`
-    .card-content {
-      position: relative;
-      direction: ltr;
-      display: flex;
-    }
-    .col1 {
-      flex: 1;
-      min-width: 60px;
-      max-width: 120px;
-    }
-    .col1top {
-      height: 60px;
-    }
-    .col2 {
-      justify-content: left;
-      flex-grow: 1;
-    }
-    .col2top {
-      height: 60px;
-      display: flex;
-      justify-content: left;
-    }
-    .col2bottom {
-      display: flex;
-      justify-content: left;
-    }
-    .sankey-left {
-      flex: 1;
-      flex-grow: 0;
-    }
-    .sankey-mid {
-      flex: 1;
-      flex-grow: 1;
-      min-width: 20px;
-      position: relative;
-    }
-    .layer-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    .sankey-mid-labels {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-    }
-    .sankey-mid-svg {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-    }
-    .sankey-right {
-      flex: 1;
-      flex-grow: 2;
-      min-width: 50px;
-    }
-    .col3 {
-      flex: 1;
-      min-width: 80px;
-      max-width: 120px;
-      padding: 0px 16px 0px 0px;
-    }
-    .col3top {
-      height: 60px;
-    }
-    .label {
-      flex: 1;
-      position: relative;
-      font-size: 10px;
-    }
-    .elecroute-label-grid {
-      display: flex;
-      text-align: center;
-    }
-    .elecroute-label-battery {
-      display: flex;
-      min-width: 60px;
-      padding-left: 6px;
-    }
-    .elecroute-label-horiz {
-      display: flex;
-      flex: 0 0 auto;
-      flex-grow: 0;
-      flex-shrink: 0;
-      text-align: center;
-    }
-    .elecroute-label-consumer {
-      display: flex;
-      align-items: center;
-      text-align: left;
-      flex-grow: 0;
-      flex-shrink: 0;
-      justify-content: left;
-      padding-left: 6px;
-      white-space: pre;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    svg {
-      rect {
-        stroke: none;
-        stroke-width: 0;
+  static get styles(): CSSResultGroup {
+    return css`
+      .card-content {
+        position: relative;
+        direction: ltr;
+        display: flex;
       }
-      path {
-        stroke: none;
-        stroke-width: 0;
+      .col1 {
+        flex: 1;
+        min-width: 60px;
+        max-width: 120px;
       }
-      path.grid {
-        fill: var(--grid-in-color, #920e83);
+      .col1top {
+        height: 60px;
       }
-      path.battery {
-        fill: var(--batt-in-color, #01f4fc);
+      .col2 {
+        justify-content: left;
+        flex-grow: 1;
       }
-      polygon {
-        stroke: none;
+      .col2top {
+        height: 60px;
+        display: flex;
+        justify-content: left;
       }
-      polygon.generation {
-        fill: var(--generation-color, #0d6a04);
+      .col2bottom {
+        display: flex;
+        justify-content: left;
       }
-      polygon.grid {
-        fill: var(--grid-in-color, #920e83);
+      .sankey-left {
+        flex: 1;
+        flex-grow: 0;
       }
-      polygon.tint {
-        fill: #000000;
-        opacity: 0.2;
+      .sankey-mid {
+        flex: 1;
+        flex-grow: 1;
+        min-width: 20px;
+        position: relative;
       }
-      path.generation {
-        fill: var(--generation-color, #0d6a04);
-        stroke: var(--generation-color, #0d6a04);
-        stroke-width: 0;
+      .layer-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
       }
-      rect.generation {
-        fill: var(--generation-color, #0d6a04);
-        stroke-width: 0;
+      .sankey-mid-labels {
+        width: 100%;
+        height: 100%;
+        position: absolute;
       }
-      rect.grid {
-        fill: var(--grid-in-color, #920e83);
+      .sankey-mid-svg {
+        width: 100%;
+        height: 100%;
+        position: absolute;
       }
-      rect.battery {
-        fill: var(--batt-in-color, #01f4fc);
+      .sankey-right {
+        flex: 1;
+        flex-grow: 2;
+        min-width: 40px;
       }
-    }
-  `;
+      .sankey-far-right {
+        flex: 1;
+        flex-grow: 0;
+        min-width: ${this.extrasLength + ARROW_HEAD_LENGTH}px;
+      }
+      .col3 {
+        flex: 1;
+        min-width: 80px;
+        max-width: 120px;
+        padding: 0px 16px 0px 0px;
+      }
+      .col3top {
+        height: 60px;
+      }
+      .label {
+        flex: 1;
+        position: relative;
+        font-size: 10px;
+      }
+      .elecroute-label-grid {
+        display: flex;
+        text-align: center;
+      }
+      .elecroute-label-battery {
+        display: flex;
+        min-width: 60px;
+        padding-left: 6px;
+      }
+      .elecroute-label-horiz {
+        display: flex;
+        flex: 0 0 auto;
+        flex-grow: 0;
+        flex-shrink: 0;
+        text-align: center;
+      }
+      .elecroute-label-consumer {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        flex-grow: 0;
+        flex-shrink: 0;
+        justify-content: left;
+        padding-left: 6px;
+        white-space: pre;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      svg {
+        rect {
+          stroke: none;
+          stroke-width: 0;
+        }
+        path {
+          stroke: none;
+          stroke-width: 0;
+        }
+        path.grid {
+          fill: var(--grid-in-color, #920e83);
+        }
+        path.battery {
+          fill: var(--batt-in-color, #01f4fc);
+        }
+        polygon {
+          stroke: none;
+        }
+        polygon.generation {
+          fill: var(--generation-color, #0d6a04);
+        }
+        polygon.grid {
+          fill: var(--grid-in-color, #920e83);
+        }
+        polygon.tint {
+          fill: #000000;
+          opacity: 0.2;
+        }
+        path.generation {
+          fill: var(--generation-color, #0d6a04);
+          stroke: var(--generation-color, #0d6a04);
+          stroke-width: 0;
+        }
+        rect.generation {
+          fill: var(--generation-color, #0d6a04);
+          stroke-width: 0;
+        }
+        rect.grid {
+          fill: var(--grid-in-color, #920e83);
+        }
+        rect.battery {
+          fill: var(--batt-in-color, #01f4fc);
+        }
+      }
+    `;
+  }
 }
 
 declare global {
