@@ -410,8 +410,8 @@ function renderBlendRect(
 
 @customElement("elec-sankey")
 export class ElecSankey extends LitElement {
-  // Extras can be added in to the left of the arrow by extending this
-  // class and overriding extrasLength.
+  // Extras can be added in to the left of the consumer arrow by
+  // extending this class and overriding extrasLength.
   static extrasLength = 0;
 
   @property()
