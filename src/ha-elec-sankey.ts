@@ -82,46 +82,48 @@ export class HaElecSankey extends ElecSankey {
     });
   }
 
-  static styles: CSSResultArray = [
-    ElecSankey.styles,
-    css`
-      ha-card:focus {
-        outline: none;
-      }
-      .card-header {
-        padding-bottom: 0;
-      }
-      .name {
-        text-align: center;
-        line-height: initial;
-        color: var(--primary-text-color);
-        width: 100%;
-        font-size: 15px;
-        margin-top: 8px;
-      }
-      .label {
-        font-size: 12px;
-      }
-      .label-action-clickable {
-        cursor: pointer;
-      }
-      ha-svg-icon {
-        --icon-primary-color: var(--icon-primary-color);
-      }
-      ha-svg-icon.small {
-        --mdc-icon-size: 12px;
-      }
-      .directionright.grid {
-        color: var(--energy-grid-consumption-color);
-      }
-      .directionleft.grid {
-        color: var(--energy-grid-return-color);
-      }
-      .directionleft.battery {
-        color: var(--energy-battery-out-color);
-      }
-    `,
-  ];
+  static get styles(): CSSResultArray {
+    return [
+      super.styles,
+      css`
+        ha-card:focus {
+          outline: none;
+        }
+        .card-header {
+          padding-bottom: 0;
+        }
+        .name {
+          text-align: center;
+          line-height: initial;
+          color: var(--primary-text-color);
+          width: 100%;
+          font-size: 15px;
+          margin-top: 8px;
+        }
+        .label {
+          font-size: 12px;
+        }
+        .label-action-clickable {
+          cursor: pointer;
+        }
+        ha-svg-icon {
+          --icon-primary-color: var(--icon-primary-color);
+        }
+        ha-svg-icon.small {
+          --mdc-icon-size: 12px;
+        }
+        .directionright.grid {
+          color: var(--energy-grid-consumption-color);
+        }
+        .directionleft.grid {
+          color: var(--energy-grid-return-color);
+        }
+        .directionleft.battery {
+          color: var(--energy-battery-out-color);
+        }
+      `,
+    ];
+  }
 }
 
 declare global {
