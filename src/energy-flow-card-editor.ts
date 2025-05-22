@@ -15,7 +15,7 @@ import setupCustomlocalize from "./localize";
 const ENERGY_LABELS = [
   "hide_small_consumers",
   "battery_charge_only_from_generation",
-]
+];
 const schema = [
   { name: "title", selector: { text: {} } },
 
@@ -32,25 +32,26 @@ const schema = [
             min: 0,
             max: 10,
             mode: "slider",
-          }
-        }
+          },
+        },
       },
       {
         name: "hide_small_consumers",
-        selector: { boolean: {} }
+        selector: { boolean: {} },
       },
       {
         name: "battery_charge_only_from_generation",
-        selector: { boolean: {} }
-      }
-
-    ]
-  }
+        selector: { boolean: {} },
+      },
+    ],
+  },
 ];
 
 @customElement(ENERGY_CARD_EDITOR_NAME)
-export class EnergyFlowCardEditor extends LitElement implements LovelaceCardEditor {
-
+export class EnergyFlowCardEditor
+  extends LitElement
+  implements LovelaceCardEditor
+{
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: EnergyElecFlowCardConfig;
@@ -67,7 +68,8 @@ export class EnergyFlowCardEditor extends LitElement implements LovelaceCardEdit
     }
     if (ENERGY_LABELS.includes(schema.name)) {
       return customLocalize(`editor.card.energy_sankey.${schema.name}`);
-    } return this.hass!.localize(
+    }
+    return this.hass!.localize(
       `ui.panel.lovelace.editor.card.generic.${schema.name}`
     );
   };
@@ -86,23 +88,20 @@ export class EnergyFlowCardEditor extends LitElement implements LovelaceCardEdit
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}
       ></ha-form>
-      <ha-alert
-        alert-type="info"
-        .title="Note"
-      >
+      <ha-alert alert-type="info" .title="Note">
         Energy flow entities are configured in the
-        <a href="/config/energy">Energy Dashboard Config</a>.
-        They cannot be modified via the card configuration.
+        <a href="/config/energy">Energy Dashboard Config</a>. They cannot be
+        modified via the card configuration.
       </ha-alert>
-      <ha-alert
-        alert-type="info"
-      >
-        Please note that this card is in development!
-        If you see a bug or a possible improvement, please use the
-        <a href="https://github.com/davet2001/energy-sankey/issues">issue tracker</a>
+      <ha-alert alert-type="info">
+        Please note that this card is in development! If you see a bug or a
+        possible improvement, please use the
+        <a href="https://github.com/davet2001/energy-sankey/issues"
+          >issue tracker</a
+        >
         to help us improve it!
       </ha-alert>
-      `;
+    `;
   }
 
   private _valueChanged(ev: CustomEvent): void {

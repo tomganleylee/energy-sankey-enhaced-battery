@@ -1381,7 +1381,7 @@ export class ElecSankey extends LitElement {
     TemplateResult,
     TemplateResult,
     number,
-    number
+    number,
   ] {
     const width = this._rateToWidth(consumer.rate);
     const xEnd = topRightX;
@@ -1496,7 +1496,7 @@ export class ElecSankey extends LitElement {
     Array<TemplateResult>,
     Array<TemplateResult>,
     Array<TemplateResult>,
-    number
+    number,
   ] {
     const divRetArray: Array<TemplateResult> = [];
     const svgFlowArray: Array<TemplateResult> = [];
@@ -1815,7 +1815,7 @@ export class ElecSankey extends LitElement {
     number,
     string,
     string,
-    string
+    string,
   ] {
     const widthGenToConsumers = this._generationToConsumersFlowWidth();
     const widthGenToGrid = this._generationToGridFlowWidth();
