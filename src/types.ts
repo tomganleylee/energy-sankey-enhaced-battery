@@ -1,6 +1,5 @@
 import { LovelaceCardConfig } from "./ha/data/lovelace/config/card";
 
-
 interface ElecFlowCardConfig extends LovelaceCardConfig {
   title?: string;
   hide_small_consumers?: boolean;
@@ -21,4 +20,3 @@ export interface PowerFlowCardConfig extends ElecFlowCardConfig {
     name?: string;
   }[];
 }
-

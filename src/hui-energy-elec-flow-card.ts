@@ -21,7 +21,10 @@ import {
 } from "./ha/data/recorder";
 import { SubscribeMixin } from "./ha/mixins/subscribe-mixin";
 import { HomeAssistant } from "./ha/types";
-import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/types";
+import type {
+  LovelaceCard,
+  LovelaceCardEditor,
+} from "./ha/panels/lovelace/types";
 import { EnergyElecFlowCardConfig } from "./types";
 
 import { registerCustomCard } from "./utils/custom-cards";
@@ -33,14 +36,15 @@ import {
 registerCustomCard({
   type: "hui-energy-elec-flow-card",
   name: "Sankey Energy Flow Card",
-  description: "Card for showing the flow of electrical energy over a time period on a sankey chart",
+  description:
+    "Card for showing the flow of electrical energy over a time period on a sankey chart",
 });
-
 
 @customElement("hui-energy-elec-flow-card")
 export class HuiEnergyElecFlowCard
   extends SubscribeMixin(LitElement)
-  implements LovelaceCard {
+  implements LovelaceCard
+{
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: EnergyElecFlowCardConfig;
@@ -94,18 +98,19 @@ export class HuiEnergyElecFlowCard
 
     const maxConsumerBranches = this._config.max_consumer_branches || 0;
     const hideConsumersBelow = this._config.hide_small_consumers
-      ? HIDE_CONSUMERS_BELOW_THRESHOLD_KWH : 0;
-    const batteryChargeOnlyFromGeneration = 
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_KWH
+      : 0;
+    const batteryChargeOnlyFromGeneration =
       this._config.battery_charge_only_from_generation || false;
     return html`
       <ha-card>
         ${this._config.title
-        ? html`<h1 class="card-header">${this._config.title}</h1>`
-        : ""}
+          ? html`<h1 class="card-header">${this._config.title}</h1>`
+          : ""}
         <div
           class="content ${classMap({
-          "has-header": !!this._config.title,
-        })}"
+            "has-header": !!this._config.title,
+          })}"
         >
           <ha-elec-sankey
             .hass=${this.hass}
@@ -113,7 +118,7 @@ export class HuiEnergyElecFlowCard
             .gridOutRoute=${this._gridOutRoute || undefined}
             .generationInRoutes=${this._generationInRoutes || {}}
             .consumerRoutes=${this._consumerRoutes || {}}
-            .batteryRoutes=${this._batteryRoutes || {}} 
+            .batteryRoutes=${this._batteryRoutes || {}}
             .maxConsumerBranches=${maxConsumerBranches}
             .hideConsumersBelow=${hideConsumersBelow}
             .batteryChargeOnlyFromGeneration=${batteryChargeOnlyFromGeneration}
@@ -186,16 +191,14 @@ export class HuiEnergyElecFlowCard
         consumerBlacklist.push(consumer.included_in_stat);
       }
     });
-    
+
     consumers.forEach((consumer: DeviceConsumptionEnergyPreference) => {
       if (consumerBlacklist.includes(consumer.stat_consumption)) {
         return;
       }
-      const label = consumer.name || getStatisticLabel(
-        this.hass,
-        consumer.stat_consumption,
-        undefined
-      );
+      const label =
+        consumer.name ||
+        getStatisticLabel(this.hass, consumer.stat_consumption, undefined);
       const value = calculateStatisticsSumGrowth(energyData.stats, [
         consumer.stat_consumption,
       ]);
@@ -211,10 +214,10 @@ export class HuiEnergyElecFlowCard
       }
     });
 
-    const batteries: BatterySourceTypeEnergyPreference[] = energyData.prefs
-    .energy_sources.filter(
-      (source) => source.type === "battery"
-    ) as BatterySourceTypeEnergyPreference[];
+    const batteries: BatterySourceTypeEnergyPreference[] =
+      energyData.prefs.energy_sources.filter(
+        (source) => source.type === "battery"
+      ) as BatterySourceTypeEnergyPreference[];
 
     batteries.forEach((battery) => {
       const label = getStatisticLabel(
@@ -237,9 +240,8 @@ export class HuiEnergyElecFlowCard
           id: battery.stat_energy_to,
           rate: outOfSystem ?? 0,
         },
-      }
-    });    
-
+      };
+    });
   }
 
   static styles: CSSResultArray = [

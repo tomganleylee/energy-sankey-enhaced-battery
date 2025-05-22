@@ -15,7 +15,10 @@ import type {
 } from "./ha/panels/lovelace/editor/types";
 
 import { GENERIC_LABELS, POWER_CARD_EDITOR_NAME } from "./const";
-import { EntityConfig, LovelaceRowConfig } from "./ha/panels/lovelace/entity-rows/types";
+import {
+  EntityConfig,
+  LovelaceRowConfig,
+} from "./ha/panels/lovelace/entity-rows/types";
 import { processEditorEntities } from "./ha/panels/lovelace/editor/process-editor-entities";
 import { mdiPalette, mdiWrench } from "@mdi/js";
 import setupCustomlocalize from "./localize";
@@ -32,15 +35,17 @@ const POWER_LABELS = [
 ];
 
 @customElement(POWER_CARD_EDITOR_NAME)
-export class PowerFlowCardEditor extends LitElement implements LovelaceCardEditor {
-
+export class PowerFlowCardEditor
+  extends LitElement
+  implements LovelaceCardEditor
+{
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: PowerFlowCardConfig;
 
-  @state() private _configConsumerEntities: EntityConfig[] = []
+  @state() private _configConsumerEntities: EntityConfig[] = [];
 
-  @state() private _configBatteryEntities: EntityConfig[] = []
+  @state() private _configBatteryEntities: EntityConfig[] = [];
 
   @state() private _subElementEditorConfig?: SubElementEditorConfig;
 
@@ -49,30 +54,35 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     return [
       { name: "title", selector: { text: {} } },
       {
-        name: "power_from_grid_entity", selector: {
+        name: "power_from_grid_entity",
+        selector: {
           entity: {
             domain: "sensor",
             device_class: "power",
-          }
-        }
+          },
+        },
       },
-      ... showSeparateToGridOption ? [
-        {
-          name: "power_to_grid_entity", selector: {
-            entity: {
-              domain: "sensor",
-              device_class: "power",
-            }
-          }
-        }
-      ] : [],
+      ...(showSeparateToGridOption
+        ? [
+            {
+              name: "power_to_grid_entity",
+              selector: {
+                entity: {
+                  domain: "sensor",
+                  device_class: "power",
+                },
+              },
+            },
+          ]
+        : []),
       {
-        name: "generation_entity", selector: {
+        name: "generation_entity",
+        selector: {
           entity: {
             domain: "sensor",
             device_class: "power",
-          }
-        }
+          },
+        },
       },
       {
         name: "appearance",
@@ -87,22 +97,22 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
                 min: 0,
                 max: 10,
                 mode: "slider",
-              }
-            }
+              },
+            },
           },
           {
             name: "hide_small_consumers",
-            selector: { boolean: {} }
+            selector: { boolean: {} },
           },
           {
             name: "invert_battery_flows",
-            selector: { boolean: {} }
+            selector: { boolean: {} },
           },
           {
             name: "battery_charge_only_from_generation",
-            selector: { boolean: {} }
+            selector: { boolean: {} },
           },
-        ]
+        ],
       },
       {
         name: "advanced_options",
@@ -112,19 +122,21 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         schema: [
           {
             name: "independent_grid_in_out",
-            selector: { boolean: {} }
-          }
-        ]
+            selector: { boolean: {} },
+          },
+        ],
       },
     ];
   }
 
   public setConfig(config: PowerFlowCardConfig): void {
     this._config = verifyAndMigrateConfig(config);
-    this._configBatteryEntities = 
-        processEditorEntities(this._config.battery_entities);
-    this._configConsumerEntities = 
-        processEditorEntities(this._config.consumer_entities);
+    this._configBatteryEntities = processEditorEntities(
+      this._config.battery_entities
+    );
+    this._configConsumerEntities = processEditorEntities(
+      this._config.consumer_entities
+    );
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
@@ -161,7 +173,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
     const data = { ...this._config } as any;
 
-    const batteryHint = data.invert_battery_flows 
+    const batteryHint = data.invert_battery_flows
       ? customLocalize(`editor.card.power_sankey.battery_hint_inverted`)
       : customLocalize(`editor.card.power_sankey.battery_hint_std`);
     return html`
@@ -190,12 +202,12 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
         @entities-changed=${this._valueChanged}
         @edit-detail-element=${this._editDetailElement}
       ></elec-sankey-hui-entities-card-row-editor>
-      <ha-alert
-        alert-type="info"
-      >
-        Please note that this card is in development!
-        If you see a bug or a possible improvement, please use the
-        <a href="https://github.com/davet2001/energy-sankey/issues">issue tracker</a>
+      <ha-alert alert-type="info">
+        Please note that this card is in development! If you see a bug or a
+        possible improvement, please use the
+        <a href="https://github.com/davet2001/energy-sankey/issues"
+          >issue tracker</a
+        >
         to help us improve it!
       </ha-alert>
     `;
@@ -208,8 +220,7 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
     }
 
     const target = ev.target! as EditorTarget;
-    let configValue =
-      target.configValue || this._subElementEditorConfig?.type;
+    let configValue = target.configValue || this._subElementEditorConfig?.type;
     let value =
       target.checked !== undefined
         ? target.checked
@@ -226,47 +237,47 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
       //   configValue = "theme";
       //   value = value.theme;
       // }
-      else if (value.power_from_grid_entity
-        !== this._config.power_from_grid_entity) {
+      else if (
+        value.power_from_grid_entity !== this._config.power_from_grid_entity
+      ) {
         configValue = "power_from_grid_entity";
         value = value.power_from_grid_entity;
-      }
-      else if (value.power_to_grid_entity
-        !== this._config.power_to_grid_entity) {
+      } else if (
+        value.power_to_grid_entity !== this._config.power_to_grid_entity
+      ) {
         configValue = "power_to_grid_entity";
         value = value.power_to_grid_entity;
-      }
-      else if (value.generation_entity
-        !== this._config.generation_entity) {
+      } else if (value.generation_entity !== this._config.generation_entity) {
         configValue = "generation_entity";
         value = value.generation_entity;
-      }
-      else if (value.max_consumer_branches
-        != this._config.max_consumer_branches || 0) {
+      } else if (
+        value.max_consumer_branches != this._config.max_consumer_branches ||
+        0
+      ) {
         configValue = "max_consumer_branches";
         value = value.max_consumer_branches;
-      }
-      else if (value.hide_small_consumers
-        != this._config.hide_small_consumers) {
+      } else if (
+        value.hide_small_consumers != this._config.hide_small_consumers
+      ) {
         configValue = "hide_small_consumers";
         value = value.hide_small_consumers;
-      }
-      else if (value.invert_battery_flows
-        != this._config.invert_battery_flows) {
+      } else if (
+        value.invert_battery_flows != this._config.invert_battery_flows
+      ) {
         configValue = "invert_battery_flows";
         value = value.invert_battery_flows;
-      }
-      else if (value.battery_charge_only_from_generation
-        != this._config.battery_charge_only_from_generation) {
+      } else if (
+        value.battery_charge_only_from_generation !=
+        this._config.battery_charge_only_from_generation
+      ) {
         configValue = "battery_charge_only_from_generation";
         value = value.battery_charge_only_from_generation;
-      }
-      else if (value.independent_grid_in_out
-        != this._config.independent_grid_in_out) {
+      } else if (
+        value.independent_grid_in_out != this._config.independent_grid_in_out
+      ) {
         configValue = "independent_grid_in_out";
         value = value.independent_grid_in_out;
-      }
-      else {
+      } else {
         console.warn("unhandled change in <ha-form>");
       }
     }
@@ -284,12 +295,28 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
 
         this._subElementEditorConfig!.elementConfig = value;
       }
-      if (ev.currentTarget && (ev.currentTarget as any).id === "consumer-entities") {
-        this._config = { ...this._config!, consumer_entities: newConfigEntities };
-        this._configConsumerEntities = processEditorEntities(this._config!.consumer_entities);
-      } else if (ev.currentTarget && (ev.currentTarget as any).id === "battery-entities") {
-        this._config = { ...this._config!, battery_entities: newConfigEntities };
-        this._configBatteryEntities = processEditorEntities(this._config!.battery_entities);
+      if (
+        ev.currentTarget &&
+        (ev.currentTarget as any).id === "consumer-entities"
+      ) {
+        this._config = {
+          ...this._config!,
+          consumer_entities: newConfigEntities,
+        };
+        this._configConsumerEntities = processEditorEntities(
+          this._config!.consumer_entities
+        );
+      } else if (
+        ev.currentTarget &&
+        (ev.currentTarget as any).id === "battery-entities"
+      ) {
+        this._config = {
+          ...this._config!,
+          battery_entities: newConfigEntities,
+        };
+        this._configBatteryEntities = processEditorEntities(
+          this._config!.battery_entities
+        );
       }
     } else if (configValue) {
       if (value === "") {
@@ -353,5 +380,4 @@ export class PowerFlowCardEditor extends LitElement implements LovelaceCardEdito
   private _goBack(): void {
     this._subElementEditorConfig = undefined;
   }
-
 }

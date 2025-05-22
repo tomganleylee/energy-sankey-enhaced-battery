@@ -16,12 +16,21 @@ import { computeStateName } from "./ha/common/entity/compute_state_name";
 import { isValidEntityId } from "./ha/common/entity/valid_entity_id";
 import type { HomeAssistant } from "./ha/types";
 import { createEntityNotFoundWarning } from "./ha/panels/lovelace/components/hui-warning";
-import type { LovelaceCard, LovelaceCardEditor } from "./ha/panels/lovelace/types";
+import type {
+  LovelaceCard,
+  LovelaceCardEditor,
+} from "./ha/panels/lovelace/types";
 import type { PowerFlowCardConfig } from "./types";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
 import { registerCustomCard } from "./utils/custom-cards";
-import { DeviceConsumptionEnergyPreference, getEnergyPreferences } from "./ha/data/energy";
-import { ExtEntityRegistryEntry, getExtendedEntityRegistryEntry } from "./ha/data/entity_registry";
+import {
+  DeviceConsumptionEnergyPreference,
+  getEnergyPreferences,
+} from "./ha/data/energy";
+import {
+  ExtEntityRegistryEntry,
+  getExtendedEntityRegistryEntry,
+} from "./ha/data/entity_registry";
 //import "./power-flow-card-editor"
 
 export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
@@ -71,27 +80,24 @@ registerCustomCard({
   description: "Card for showing the instantaneous flow of electrical power",
 });
 
-
 function computePower(stateObj: HassEntity): number {
   /**
    * Returns the power of an entity, scaled to W.
    */
   let uom: string | undefined;
-  let state: number = Number(stateObj.state)
-  if (uom = stateObj.attributes.unit_of_measurement) {
+  let state: number = Number(stateObj.state);
+  if ((uom = stateObj.attributes.unit_of_measurement)) {
     switch (uom) {
-      case "kW":  {
+      case "kW": {
         return 1000 * state;
       }
       default: {
         return state;
       }
     }
-  }
-  else {
+  } else {
     return state;
   }
-
 }
 
 @customElement("hui-power-flow-card")
@@ -102,9 +108,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     await import("./power-flow-card-editor");
-    return document.createElement(
-      POWER_CARD_EDITOR_NAME
-    ) as LovelaceCardEditor;
+    return document.createElement(POWER_CARD_EDITOR_NAME) as LovelaceCardEditor;
   }
 
   public getCardSize(): number {
@@ -112,16 +116,17 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   }
 
   public setConfig(config: PowerFlowCardConfig): void {
-
     const newConfig = verifyAndMigrateConfig(config);
-    this._config = {...newConfig};
+    this._config = { ...newConfig };
   }
 
-  private static async getExtendedEntityRegistryEntries(_hass: HomeAssistant): Promise<{ [id: string]: ExtEntityRegistryEntry }> {
+  private static async getExtendedEntityRegistryEntries(
+    _hass: HomeAssistant
+  ): Promise<{ [id: string]: ExtEntityRegistryEntry }> {
     // Get the full list of all extended entity registry entries as a dict.
 
     // @todo: uses multiple WS lookups - there's scope for optimising this.
-    let extEntities: { [id: string]: ExtEntityRegistryEntry; } = {};
+    let extEntities: { [id: string]: ExtEntityRegistryEntry } = {};
 
     for (let key in _hass.entities) {
       const extEntity = await getExtendedEntityRegistryEntry(_hass, key);
@@ -136,7 +141,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   private static async getPowerEntityIdForEnergyEntityId(
     _hass: HomeAssistant,
     energyEntityId: string,
-    extEntities: { [id: string]: ExtEntityRegistryEntry; },
+    extEntities: { [id: string]: ExtEntityRegistryEntry }
   ): Promise<string> {
     /**
      * Given an energy entity ID, find the associated power entity ID.
@@ -159,18 +164,19 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
 
     for (let key in extEntities) {
       const extEntity = extEntities[key];
-      if (extEntity.device_id === deviceEntityId && extEntity.original_device_class === "power") {
+      if (
+        extEntity.device_id === deviceEntityId &&
+        extEntity.original_device_class === "power"
+      ) {
         powerEntityIds.push(extEntity.entity_id);
       }
     }
 
     if (powerEntityIds.length === 0) {
       return "";
-    }
-    else if (powerEntityIds.length === 1) {
+    } else if (powerEntityIds.length === 1) {
       return powerEntityIds[0];
-    }
-    else {
+    } else {
       // We have multiple power entities for this device, pick the one
       // with the largest absolute power.
       let mostLikelyPowerEntityId: string = powerEntityIds[0];
@@ -179,7 +185,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         const power = Math.abs(+_hass.states[powerEntityId].state);
         if (power > maxPower) {
           mostLikelyPowerEntityId = powerEntityId;
-        };
+        }
       }
       return mostLikelyPowerEntityId;
     }
@@ -188,19 +194,23 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   private static async getPowerEntityIdForEnergyEntityIdWithFail(
     _hass: HomeAssistant,
     energyEntityId: string,
-    extEntities: { [id: string]: ExtEntityRegistryEntry; },
+    extEntities: { [id: string]: ExtEntityRegistryEntry }
   ): Promise<string> {
     /**
      * Given an energy entity ID, find the associated power entity ID.
      * If not found, return a string indicating the failure.
      */
-    let powerEntityId = await this.getPowerEntityIdForEnergyEntityId(_hass, energyEntityId, extEntities);
+    let powerEntityId = await this.getPowerEntityIdForEnergyEntityId(
+      _hass,
+      energyEntityId,
+      extEntities
+    );
     if (!powerEntityId) {
-      powerEntityId = "please_manually_enter_power_entity_id_for " + energyEntityId;
+      powerEntityId =
+        "please_manually_enter_power_entity_id_for " + energyEntityId;
     }
     return powerEntityId;
   }
-
 
   public static async getStubConfig(
     _hass: HomeAssistant
@@ -215,8 +225,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      */
 
     const energyPrefs = await getEnergyPreferences(_hass);
-    const extEntities: { [id: string]: ExtEntityRegistryEntry; }
-      = await this.getExtendedEntityRegistryEntries(_hass);
+    const extEntities: { [id: string]: ExtEntityRegistryEntry } =
+      await this.getExtendedEntityRegistryEntries(_hass);
 
     let returnConfig: PowerFlowCardConfig = {
       type: "custom:hui-power-flow-card",
@@ -224,13 +234,18 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       consumer_entities: [],
       battery_entities: [],
       config_version: 1,
-    }
+    };
     // Parse energy sources from HA's energy prefs
     for (const source of energyPrefs.energy_sources) {
       switch (source.type) {
         case "grid":
           let power_from_grid_entity = "";
-          power_from_grid_entity = await this.getPowerEntityIdForEnergyEntityIdWithFail(_hass, source.flow_from[0].stat_energy_from, extEntities);
+          power_from_grid_entity =
+            await this.getPowerEntityIdForEnergyEntityIdWithFail(
+              _hass,
+              source.flow_from[0].stat_energy_from,
+              extEntities
+            );
           returnConfig.power_from_grid_entity = power_from_grid_entity;
           break;
         case "solar":
@@ -240,24 +255,24 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             _hass,
             source.stat_energy_from,
             extEntities
-          )
+          );
           if (generation_entity) {
             returnConfig.generation_entity = generation_entity;
           }
           break;
         case "battery":
-          let batteryEntity =""
+          let batteryEntity = "";
           batteryEntity = await this.getPowerEntityIdForEnergyEntityId(
             _hass,
             source.stat_energy_from,
             extEntities
-          )
+          );
           if (batteryEntity) {
             returnConfig.battery_entities.push({ entity: batteryEntity });
           }
           break;
       }
-    };
+    }
 
     // Filter out consumers that are higher level measurements in the hierarchy
     let consumerBlacklist: string[] = [];
@@ -280,11 +295,11 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         _hass,
         consumer.stat_consumption,
         extEntities
-      )
+      );
       if (entityId) {
         returnConfig.consumer_entities.push({ entity: entityId });
       }
-    };
+    }
     return returnConfig;
   }
 
@@ -297,14 +312,15 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     // convert the single entity to an array.
     if (config.generation_entity) {
       config.generation_entities = [config.generation_entity];
-      delete (config.generation_entity)
+      delete config.generation_entity;
     }
 
     const maxConsumerBranches = this._config.max_consumer_branches || 0;
     const hideConsumersBelow = this._config.hide_small_consumers
-      ? HIDE_CONSUMERS_BELOW_THRESHOLD_W : 0;
-    const batteryChargeOnlyFromGeneration = 
-        this._config.battery_charge_only_from_generation || false;
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_W
+      : 0;
+    const batteryChargeOnlyFromGeneration =
+      this._config.battery_charge_only_from_generation || false;
 
     let gridInRoute: ElecRoute | null = null;
     if (config.power_from_grid_entity) {
@@ -313,9 +329,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-          this.hass,
-          config.power_from_grid_entity
-        )}
+              this.hass,
+              config.power_from_grid_entity
+            )}
           </hui-warning>
         `;
       }
@@ -334,9 +350,9 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         return html`
           <hui-warning>
             ${createEntityNotFoundWarning(
-          this.hass,
-          config.power_to_grid_entity
-        )}
+              this.hass,
+              config.power_to_grid_entity
+            )}
           </hui-warning>
         `;
       }
@@ -392,7 +408,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
     const batteryRoutes: { [id: string]: ElecRoutePair } = {};
     if (this._config.battery_entities) {
-
       for (const entity of this._config.battery_entities) {
         let stateObj: HassEntity;
         stateObj = this.hass.states[entity.entity];
@@ -409,8 +424,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         }
         // power in refers to power into the energy distribution system
         // (i.e. out of the battery)
-        let powerIn = (this._config.invert_battery_flows ? -1 : 1) 
-          * computePower(stateObj);
+        let powerIn =
+          (this._config.invert_battery_flows ? -1 : 1) * computePower(stateObj);
         batteryRoutes[entity.entity] = {
           in: {
             id: entity.entity,
@@ -421,19 +436,19 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
             id: "null",
             text: "null",
             rate: powerIn < 0 ? -powerIn : 0,
-          }
+          },
         };
       }
     }
     return html`
       <ha-card>
         ${config.title
-        ? html`<h1 class="card-header">${config.title}</h1>`
-        : ""}
+          ? html`<h1 class="card-header">${config.title}</h1>`
+          : ""}
         <div
           class="content ${classMap({
-          "has-header": !!this._config.title,
-        })}"
+            "has-header": !!this._config.title,
+          })}"
         >
           <ha-elec-sankey
             .hass=${this.hass}
@@ -468,8 +483,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         this._config.power_from_grid_entity,
         this._config.power_to_grid_entity,
         ...(this._config.generation_entities || []),
-        ...(this._config.consumer_entities.map(a => a.entity) || []),
-        ...(this._config.battery_entities.map(a => a.entity) || []),
+        ...(this._config.consumer_entities.map((a) => a.entity) || []),
+        ...(this._config.battery_entities.map((a) => a.entity) || []),
       ]) {
         if (id) {
           const oldState = oldHass.states[id] as HassEntity | undefined;
@@ -519,7 +534,6 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         --grid-in-color: var(--energy-grid-consumption-color);
         --batt-in-color: var(--energy-battery-out-color);
       }
-
     `,
   ];
 }
