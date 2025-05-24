@@ -23,7 +23,7 @@ import {
 import { processEditorEntities } from "../../ha/panels/lovelace/editor/process-editor-entities";
 import { mdiPalette, mdiWrench } from "@mdi/js";
 import setupCustomlocalize from "../../localize";
-import { verifyAndMigrateConfig } from "./hui-power-flow-card";
+import { verifyAndMigrateConfig } from "./power-flow-card";
 
 const POWER_LABELS = [
   "power_from_grid_entity",
