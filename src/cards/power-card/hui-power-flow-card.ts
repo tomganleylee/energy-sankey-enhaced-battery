@@ -11,23 +11,23 @@ import {
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
-import { ElecRoute, ElecRoutePair } from "./elec-sankey";
-import { applyThemesOnElement } from "./ha/common/dom/apply_themes_on_element";
-import { computeStateName } from "./ha/common/entity/compute_state_name";
-import type { HomeAssistant } from "./ha/types";
-import { createEntityNotFoundWarning } from "./ha/panels/lovelace/components/hui-warning";
+import { ElecRoute, ElecRoutePair } from "../../elec-sankey";
+import { applyThemesOnElement } from "../../ha/common/dom/apply_themes_on_element";
+import { computeStateName } from "../../ha/common/entity/compute_state_name";
+import type { HomeAssistant } from "../../ha/types";
+import { createEntityNotFoundWarning } from "../../ha/panels/lovelace/components/hui-warning";
 import type {
   LovelaceCard,
   LovelaceCardEditor,
-} from "./ha/panels/lovelace/types";
-import type { PowerFlowCardConfig } from "./types";
-import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
-import { registerCustomCard } from "./utils/custom-cards";
-import { getEnergyPreferences, EnergyPreferences } from "./ha/data/energy";
+} from "../../ha/panels/lovelace/types";
+import type { PowerFlowCardConfig } from "../../types";
+import { hasConfigChanged } from "../../ha/panels/lovelace/common/has-changed";
+import { registerCustomCard } from "../../utils/custom-cards";
+import { getEnergyPreferences, EnergyPreferences } from "../../ha/data/energy";
 import {
   ExtEntityRegistryEntry,
   getExtendedEntityRegistryEntry,
-} from "./ha/data/entity_registry";
+} from "../../ha/data/entity_registry";
 
 export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   if (!config) {
