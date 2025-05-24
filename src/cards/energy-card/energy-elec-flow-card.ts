@@ -30,18 +30,46 @@ import { EnergyElecFlowCardConfig } from "../../types";
 import { registerCustomCard } from "../../utils/custom-cards";
 import {
   ENERGY_CARD_EDITOR_NAME,
+  ENERGY_CARD_NAME,
   HIDE_CONSUMERS_BELOW_THRESHOLD_KWH,
 } from "./const";
 
+const DEFAULT_CONFIG: EnergyElecFlowCardConfig = {
+  type: `custom:${ENERGY_CARD_NAME}`,
+  title: "Energy distribution today",
+  config_version: 1,
+  hide_small_consumers: false,
+  max_consumer_branches: 0,
+  battery_charge_only_from_generation: false,
+};
+
+export function verifyAndMigrateConfig(config: EnergyElecFlowCardConfig) {
+  if (!config) {
+    throw new Error("Invalid configuration");
+  }
+  let newConfig = { ...config };
+
+  let currentVersion = config.config_version || 0;
+
+  if (currentVersion === 0) {
+    console.log("Migrating config from ? to version 1");
+    currentVersion = 1;
+    newConfig.type = `custom:${ENERGY_CARD_NAME}`;
+  }
+  newConfig.config_version = currentVersion;
+
+  return newConfig;
+}
+
 registerCustomCard({
-  type: "hui-energy-elec-flow-card",
+  type: ENERGY_CARD_NAME,
   name: "Sankey Energy Flow Card",
   description:
     "Card for showing the flow of electrical energy over a time period on a sankey chart",
 });
 
-@customElement("hui-energy-elec-flow-card")
-export class HuiEnergyElecFlowCard
+@customElement(ENERGY_CARD_NAME)
+export class EnergyElecFlowCard
   extends SubscribeMixin(LitElement)
   implements LovelaceCard
 {
@@ -74,21 +102,18 @@ export class HuiEnergyElecFlowCard
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import("./energy-flow-card-editor");
+    await import("./energy-elec-flow-card-editor");
     return document.createElement(
       ENERGY_CARD_EDITOR_NAME
     ) as LovelaceCardEditor;
   }
 
   public setConfig(config: EnergyElecFlowCardConfig): void {
-    this._config = config;
+    this._config = verifyAndMigrateConfig(config);
   }
 
   static getStubConfig(): EnergyElecFlowCardConfig {
-    return {
-      type: "custom:hui-energy-elec-flow-card",
-      title: "Energy distribution today",
-    };
+    return DEFAULT_CONFIG;
   }
 
   protected render() {
@@ -263,8 +288,7 @@ export class HuiEnergyElecFlowCard
   ];
 }
 
-declare global {
-  interface HTMLElementTagNameMap {
-    "hui-energy-elec-flow-card": HuiEnergyElecFlowCard;
-  }
-}
+// Legacy element name for backwards compatibility. Keep this until
+// we are sure that noone is using pre config version 1 any more.
+@customElement("hui-energy-elec-flow-card")
+export class HuiEnergyElecFlowCard extends EnergyElecFlowCard {}

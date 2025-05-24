@@ -12,6 +12,7 @@ import { ENERGY_CARD_EDITOR_NAME } from "./const";
 import { GENERIC_LABELS } from "../../const";
 import { mdiPalette } from "@mdi/js";
 import setupCustomlocalize from "../../localize";
+import { verifyAndMigrateConfig } from "./energy-elec-flow-card";
 
 const ENERGY_LABELS = [
   "hide_small_consumers",
@@ -58,7 +59,7 @@ export class EnergyFlowCardEditor
   @state() private _config?: EnergyElecFlowCardConfig;
 
   public setConfig(config: EnergyElecFlowCardConfig): void {
-    this._config = config;
+    this._config = verifyAndMigrateConfig(config);
   }
 
   private _computeLabel = (schema: HaFormSchema) => {
@@ -106,7 +107,6 @@ export class EnergyFlowCardEditor
   }
 
   private _valueChanged(ev: CustomEvent): void {
-    const config = ev.detail.value;
-    fireEvent(this, "config-changed", { config });
+    fireEvent(this, "config-changed", { config: ev.detail.value });
   }
 }
