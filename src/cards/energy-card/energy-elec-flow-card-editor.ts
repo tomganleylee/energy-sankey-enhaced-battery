@@ -3,9 +3,8 @@ import { customElement, property, state } from "lit/decorators";
 import { LovelaceCardEditor } from "../../ha/panels/lovelace/types";
 import { EnergyElecFlowCardConfig, PowerFlowCardConfig } from "../../types";
 import { html, LitElement, nothing } from "lit";
-import { HomeAssistant, LocalizeFunc } from "../../ha/types";
+import { HomeAssistant } from "../../ha/types";
 import { HaFormSchema } from "../../utils/form/ha-form";
-//import "../../ha/panels/lovelace/editor/hui-entities-card-row-editor";
 import { fireEvent } from "../../ha/common/dom/fire_event";
 
 import { ENERGY_CARD_EDITOR_NAME } from "./const";
