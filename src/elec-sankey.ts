@@ -273,7 +273,7 @@ function renderFlowByCorners(
   return svg_ret;
 }
 
-function renderRect(
+export function renderRect(
   x: number,
   y: number,
   width: number,
@@ -281,6 +281,7 @@ function renderRect(
   classname: string,
   color: string | null = null
 ): TemplateResult {
+  const styleString = color ? `fill:${color};fill-opacity:1` : "";
   return svg`
   <rect
   class=${classname}
@@ -288,7 +289,7 @@ function renderRect(
   y="${y}"
   height="${height}"
   width="${width}"
-  {color ? style="fill:${color};fill-opacity:1" : ""}
+  style=${styleString}
   />`;
 }
 

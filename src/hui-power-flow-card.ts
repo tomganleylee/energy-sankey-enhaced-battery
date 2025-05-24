@@ -6,6 +6,7 @@ import {
   PropertyValues,
   nothing,
   CSSResultArray,
+  TemplateResult,
 } from "lit";
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
@@ -101,10 +102,10 @@ function computePower(stateObj: HassEntity): number {
 }
 
 @customElement("hui-power-flow-card")
-class HuiPowerFlowCard extends LitElement implements LovelaceCard {
+export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @state() private _config?: PowerFlowCardConfig;
+  @state() protected _config?: PowerFlowCardConfig;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     await import("./power-flow-card-editor");
@@ -303,24 +304,23 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     return returnConfig;
   }
 
-  protected render() {
-    if (!this._config || !this.hass) {
-      return nothing;
-    }
-    let config = this._config;
+  protected _getValues(
+    config: PowerFlowCardConfig
+  ):
+    | [
+        ElecRoute | null,
+        ElecRoute | null,
+        { [id: string]: ElecRoute },
+        { [id: string]: ElecRoute },
+        { [id: string]: ElecRoutePair },
+      ]
+    | TemplateResult {
     // The editor only supports a single generation entity, so we need to
     // convert the single entity to an array.
     if (config.generation_entity) {
       config.generation_entities = [config.generation_entity];
       delete config.generation_entity;
     }
-
-    const maxConsumerBranches = this._config.max_consumer_branches || 0;
-    const hideConsumersBelow = this._config.hide_small_consumers
-      ? HIDE_CONSUMERS_BELOW_THRESHOLD_W
-      : 0;
-    const batteryChargeOnlyFromGeneration =
-      this._config.battery_charge_only_from_generation || false;
 
     let gridInRoute: ElecRoute | null = null;
     if (config.power_from_grid_entity) {
@@ -384,8 +384,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     const consumerRoutes: { [id: string]: ElecRoute } = {};
-    if (this._config.consumer_entities) {
-      for (const entity of this._config.consumer_entities) {
+    if (config.consumer_entities) {
+      for (const entity of config.consumer_entities) {
         let stateObj: HassEntity;
         stateObj = this.hass.states[entity.entity];
         let name = entity.name;
@@ -407,8 +407,8 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       }
     }
     const batteryRoutes: { [id: string]: ElecRoutePair } = {};
-    if (this._config.battery_entities) {
-      for (const entity of this._config.battery_entities) {
+    if (config.battery_entities) {
+      for (const entity of config.battery_entities) {
         let stateObj: HassEntity;
         stateObj = this.hass.states[entity.entity];
         let name = entity.name;
@@ -425,7 +425,7 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         // power in refers to power into the energy distribution system
         // (i.e. out of the battery)
         let powerIn =
-          (this._config.invert_battery_flows ? -1 : 1) * computePower(stateObj);
+          (config.invert_battery_flows ? -1 : 1) * computePower(stateObj);
         batteryRoutes[entity.entity] = {
           in: {
             id: entity.entity,
@@ -440,6 +440,40 @@ class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         };
       }
     }
+    return [
+      gridInRoute,
+      gridOutRoute,
+      generationInRoutes,
+      consumerRoutes,
+      batteryRoutes,
+    ];
+  }
+
+  protected render() {
+    if (!this._config || !this.hass) {
+      return nothing;
+    }
+    const config = this._config;
+    const res = this._getValues(config);
+    // If the result is an not an array, assume it is a error in the form of a
+    // TemplateResult. Show it and stop.
+    if (!Array.isArray(res)) {
+      return res;
+    }
+    const [
+      gridInRoute,
+      gridOutRoute,
+      generationInRoutes,
+      consumerRoutes,
+      batteryRoutes,
+    ] = res;
+    const maxConsumerBranches = this._config.max_consumer_branches || 0;
+    const hideConsumersBelow = this._config.hide_small_consumers
+      ? HIDE_CONSUMERS_BELOW_THRESHOLD_W
+      : 0;
+    const batteryChargeOnlyFromGeneration =
+      this._config.battery_charge_only_from_generation || false;
+
     return html`
       <ha-card>
         ${config.title
