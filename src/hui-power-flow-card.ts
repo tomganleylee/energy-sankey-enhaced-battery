@@ -23,7 +23,7 @@ import type {
 import type { PowerFlowCardConfig } from "./types";
 import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
 import { registerCustomCard } from "./utils/custom-cards";
-import { getEnergyPreferences } from "./ha/data/energy";
+import { getEnergyPreferences, EnergyPreferences } from "./ha/data/energy";
 import {
   ExtEntityRegistryEntry,
   getExtendedEntityRegistryEntry,
@@ -229,7 +229,7 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      * help to the user.
      */
 
-    const energyPrefs = await getEnergyPreferences(_hass);
+    const energyPrefs: EnergyPreferences = await getEnergyPreferences(_hass);
     const extEntities: { [id: string]: ExtEntityRegistryEntry } =
       await this.getExtendedEntityRegistryEntries(_hass);
 
