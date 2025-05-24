@@ -1774,6 +1774,9 @@ export class ElecSankey extends LitElement {
     battToConsFlow: number
   ): string {
     const total = genToConsFlow + gridToConsFlow + battToConsFlow;
+    if (total === 0) {
+      return this._gridColor();
+    }
     return mix3Hexes(
       this._genColor(),
       this._gridColor(),
