@@ -29,6 +29,12 @@ import {
   getExtendedEntityRegistryEntry,
 } from "../../ha/data/entity_registry";
 
+import {
+  POWER_CARD_NAME,
+  POWER_CARD_EDITOR_NAME,
+  HIDE_CONSUMERS_BELOW_THRESHOLD_W,
+} from "./const";
+
 export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   if (!config) {
     throw new Error("Invalid configuration");
@@ -50,6 +56,12 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
     currentVersion = 2;
     newConfig.invert_battery_flows = false;
   }
+  if (currentVersion === 2) {
+    // Migrate from version 2 to version 3
+    console.log("Migrating config from version 2 to version 3");
+    currentVersion = 3;
+    newConfig.type = `custom:${POWER_CARD_NAME}`;
+  }
 
   if (
     !config.power_from_grid_entity &&
@@ -64,14 +76,8 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   return newConfig;
 }
 
-import {
-  POWER_CARD_NAME,
-  POWER_CARD_EDITOR_NAME,
-  HIDE_CONSUMERS_BELOW_THRESHOLD_W,
-} from "./const";
-
 registerCustomCard({
-  type: "hui-power-flow-card",
+  type: POWER_CARD_NAME,
   name: "Sankey Power Flow Card",
   description: "Card for showing the instantaneous flow of electrical power",
 });
@@ -105,8 +111,8 @@ function htmlHuiWarning(hass: HomeAssistant, entity: string): TemplateResult {
   >`;
 }
 
-@customElement("hui-power-flow-card")
-export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
+@customElement(POWER_CARD_NAME)
+export class PowerFlowCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() protected _config?: PowerFlowCardConfig;
@@ -558,8 +564,7 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   ];
 }
 
-declare global {
-  interface HTMLElementTagNameMap {
-    "hui-power-flow-card": HuiPowerFlowCard;
-  }
-}
+// Legacy element name for backwards compatibility
+// Can be dropped once we are sure noone is using config version 2 any more.
+@customElement("hui-power-flow-card")
+export class HuiPowerFlowCard extends PowerFlowCard {}
