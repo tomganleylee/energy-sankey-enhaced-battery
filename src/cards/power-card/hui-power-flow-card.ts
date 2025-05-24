@@ -35,6 +35,21 @@ import {
   HIDE_CONSUMERS_BELOW_THRESHOLD_W,
 } from "./const";
 
+const DEFAULT_CONFIG: PowerFlowCardConfig = {
+  type: `custom:${POWER_CARD_NAME}`,
+  title: "Live power flow",
+  config_version: 3,
+  consumer_entities: [],
+  battery_entities: [],
+  generation_entity: undefined,
+  power_from_grid_entity: undefined,
+  power_to_grid_entity: undefined,
+  invert_battery_flows: false,
+  hide_small_consumers: false,
+  max_consumer_branches: 0,
+  independent_grid_in_out: false,
+};
+
 export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   if (!config) {
     throw new Error("Invalid configuration");
@@ -239,13 +254,7 @@ export class PowerFlowCard extends LitElement implements LovelaceCard {
     const extEntities: { [id: string]: ExtEntityRegistryEntry } =
       await this.getExtendedEntityRegistryEntries(_hass);
 
-    let returnConfig: PowerFlowCardConfig = {
-      type: "custom:hui-power-flow-card",
-      title: "Live power flow",
-      consumer_entities: [],
-      battery_entities: [],
-      config_version: 1,
-    };
+    let returnConfig: PowerFlowCardConfig = DEFAULT_CONFIG;
     // Parse energy sources from HA's energy prefs
     for (const source of energyPrefs.energy_sources) {
       switch (source.type) {
