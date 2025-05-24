@@ -11,28 +11,44 @@ import {
 import { mdiSolarPower } from "@mdi/js";
 import { customElement, property, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
-import { ElecRoute, ElecRoutePair } from "./elec-sankey";
-import { applyThemesOnElement } from "./ha/common/dom/apply_themes_on_element";
-import { computeStateName } from "./ha/common/entity/compute_state_name";
-import { isValidEntityId } from "./ha/common/entity/valid_entity_id";
-import type { HomeAssistant } from "./ha/types";
-import { createEntityNotFoundWarning } from "./ha/panels/lovelace/components/hui-warning";
+import { ElecRoute, ElecRoutePair } from "../../elec-sankey";
+import { applyThemesOnElement } from "../../ha/common/dom/apply_themes_on_element";
+import { computeStateName } from "../../ha/common/entity/compute_state_name";
+import type { HomeAssistant } from "../../ha/types";
+import { createEntityNotFoundWarning } from "../../ha/panels/lovelace/components/hui-warning";
 import type {
   LovelaceCard,
   LovelaceCardEditor,
-} from "./ha/panels/lovelace/types";
-import type { PowerFlowCardConfig } from "./types";
-import { hasConfigChanged } from "./ha/panels/lovelace/common/has-changed";
-import { registerCustomCard } from "./utils/custom-cards";
-import {
-  DeviceConsumptionEnergyPreference,
-  getEnergyPreferences,
-} from "./ha/data/energy";
+} from "../../ha/panels/lovelace/types";
+import type { PowerFlowCardConfig } from "../../types";
+import { hasConfigChanged } from "../../ha/panels/lovelace/common/has-changed";
+import { registerCustomCard } from "../../utils/custom-cards";
+import { getEnergyPreferences, EnergyPreferences } from "../../ha/data/energy";
 import {
   ExtEntityRegistryEntry,
   getExtendedEntityRegistryEntry,
-} from "./ha/data/entity_registry";
-//import "./power-flow-card-editor"
+} from "../../ha/data/entity_registry";
+
+import {
+  POWER_CARD_NAME,
+  POWER_CARD_EDITOR_NAME,
+  HIDE_CONSUMERS_BELOW_THRESHOLD_W,
+} from "./const";
+
+const DEFAULT_CONFIG: PowerFlowCardConfig = {
+  type: `custom:${POWER_CARD_NAME}`,
+  title: "Live power flow",
+  config_version: 3,
+  consumer_entities: [],
+  battery_entities: [],
+  generation_entity: undefined,
+  power_from_grid_entity: undefined,
+  power_to_grid_entity: undefined,
+  invert_battery_flows: false,
+  hide_small_consumers: false,
+  max_consumer_branches: 0,
+  independent_grid_in_out: false,
+};
 
 export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   if (!config) {
@@ -55,6 +71,12 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
     currentVersion = 2;
     newConfig.invert_battery_flows = false;
   }
+  if (currentVersion === 2) {
+    // Migrate from version 2 to version 3
+    console.log("Migrating config from version 2 to version 3");
+    currentVersion = 3;
+    newConfig.type = `custom:${POWER_CARD_NAME}`;
+  }
 
   if (
     !config.power_from_grid_entity &&
@@ -69,14 +91,8 @@ export function verifyAndMigrateConfig(config: PowerFlowCardConfig) {
   return newConfig;
 }
 
-import {
-  POWER_CARD_NAME,
-  POWER_CARD_EDITOR_NAME,
-  HIDE_CONSUMERS_BELOW_THRESHOLD_W,
-} from "./const";
-
 registerCustomCard({
-  type: "hui-power-flow-card",
+  type: POWER_CARD_NAME,
   name: "Sankey Power Flow Card",
   description: "Card for showing the instantaneous flow of electrical power",
 });
@@ -101,8 +117,17 @@ function computePower(stateObj: HassEntity): number {
   }
 }
 
-@customElement("hui-power-flow-card")
-export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
+function htmlHuiWarning(hass: HomeAssistant, entity: string): TemplateResult {
+  /**
+   * Returns a not found warning for the given entity name.
+   */
+  return html`<hui-warning
+    >${createEntityNotFoundWarning(hass, entity)}</hui-warning
+  >`;
+}
+
+@customElement(POWER_CARD_NAME)
+export class PowerFlowCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() protected _config?: PowerFlowCardConfig;
@@ -225,17 +250,11 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
      * help to the user.
      */
 
-    const energyPrefs = await getEnergyPreferences(_hass);
+    const energyPrefs: EnergyPreferences = await getEnergyPreferences(_hass);
     const extEntities: { [id: string]: ExtEntityRegistryEntry } =
       await this.getExtendedEntityRegistryEntries(_hass);
 
-    let returnConfig: PowerFlowCardConfig = {
-      type: "custom:hui-power-flow-card",
-      title: "Live power flow",
-      consumer_entities: [],
-      battery_entities: [],
-      config_version: 1,
-    };
+    let returnConfig: PowerFlowCardConfig = DEFAULT_CONFIG;
     // Parse energy sources from HA's energy prefs
     for (const source of energyPrefs.energy_sources) {
       switch (source.type) {
@@ -347,14 +366,7 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     if (config.independent_grid_in_out && config.power_to_grid_entity) {
       const stateObj = this.hass.states[config.power_to_grid_entity];
       if (!stateObj) {
-        return html`
-          <hui-warning>
-            ${createEntityNotFoundWarning(
-              this.hass,
-              config.power_to_grid_entity
-            )}
-          </hui-warning>
-        `;
+        return htmlHuiWarning(this.hass, config.power_to_grid_entity);
       }
       gridOutRoute = {
         id: config.power_to_grid_entity,
@@ -364,23 +376,20 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
     }
 
     const generationInRoutes: { [id: string]: ElecRoute } = {};
-    if (config.generation_entities) {
-      for (const entity of config.generation_entities) {
-        const stateObj = this.hass.states[entity];
-        if (!stateObj) {
-          return html`
-            <hui-warning>
-              ${createEntityNotFoundWarning(this.hass, entity)}
-            </hui-warning>
-          `;
-        }
-        generationInRoutes[entity] = {
-          id: entity,
-          text: computeStateName(stateObj),
-          rate: computePower(stateObj),
-          icon: mdiSolarPower,
-        };
+    for (const entity of [config.generation_entity]) {
+      if (!entity) {
+        continue;
       }
+      const stateObj = this.hass.states[entity];
+      if (!stateObj) {
+        return htmlHuiWarning(this.hass, entity);
+      }
+      generationInRoutes[entity] = {
+        id: entity,
+        text: computeStateName(stateObj),
+        rate: computePower(stateObj),
+        icon: mdiSolarPower,
+      };
     }
 
     const consumerRoutes: { [id: string]: ElecRoute } = {};
@@ -388,14 +397,10 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
       for (const entity of config.consumer_entities) {
         let stateObj: HassEntity;
         stateObj = this.hass.states[entity.entity];
-        let name = entity.name;
         if (!stateObj) {
-          return html`
-            <hui-warning>
-              ${createEntityNotFoundWarning(this.hass, entity.entity)}
-            </hui-warning>
-          `;
+          return htmlHuiWarning(this.hass, entity.entity);
         }
+        let name = entity.name;
         if (!name) {
           name = computeStateName(stateObj);
         }
@@ -413,11 +418,7 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
         stateObj = this.hass.states[entity.entity];
         let name = entity.name;
         if (!stateObj) {
-          return html`
-            <hui-warning>
-              ${createEntityNotFoundWarning(this.hass, entity.entity)}
-            </hui-warning>
-          `;
+          return htmlHuiWarning(this.hass, entity.entity);
         }
         if (!name) {
           name = computeStateName(stateObj);
@@ -572,8 +573,7 @@ export class HuiPowerFlowCard extends LitElement implements LovelaceCard {
   ];
 }
 
-declare global {
-  interface HTMLElementTagNameMap {
-    "hui-power-flow-card": HuiPowerFlowCard;
-  }
-}
+// Legacy element name for backwards compatibility
+// Can be dropped once we are sure noone is using config version 2 any more.
+@customElement("hui-power-flow-card")
+export class HuiPowerFlowCard extends PowerFlowCard {}
