@@ -914,7 +914,7 @@ export class ElecSankey extends LitElement {
     x1: number,
     y1: number,
     y2: number,
-    svgScaleX: number = 1
+    svgScaleX: number
   ): [TemplateResult[] | symbol[], TemplateResult | symbol] {
     const totalGenWidth = this._generationInFlowWidth();
     const genToConsWidth = this._generationToConsumersFlowWidth();
@@ -1098,7 +1098,7 @@ export class ElecSankey extends LitElement {
     y2: number,
     y13: number,
     y10: number,
-    svgScaleX: number = 1
+    svgScaleX: number
   ): [TemplateResult | symbol, TemplateResult | symbol] {
     const gridRoute = this.gridInRoute ? this.gridInRoute : this.gridOutRoute;
     if (!gridRoute) {
@@ -1374,7 +1374,7 @@ export class ElecSankey extends LitElement {
     topRightY: number,
     consumer: ElecRoute,
     color: string,
-    svgScaleX: number = 1,
+    svgScaleX: number,
     count: number = 1
   ): [
     TemplateResult,
