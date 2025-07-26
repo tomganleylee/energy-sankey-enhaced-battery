@@ -2,7 +2,7 @@ import { HomeAssistant } from "./ha/types";
 // import * as ar from "./translations/ar.json";
 // import * as bg from "./translations/bg.json";
 // import * as ca from "./translations/ca.json";
-// import * as cs from "./translations/cs.json";
+import * as cs from "./translations/cs.json";
 // import * as da from "./translations/da.json";
 // import * as de from "./translations/de.json";
 // import * as el from "./translations/el.json";
@@ -35,7 +35,7 @@ const languages: Record<string, unknown> = {
   //   ar,
   //   bg,
   //   ca,
-  //   cs,
+  cs,
   //   da,
   //   de,
   //   el,
