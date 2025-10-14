@@ -1,8 +1,17 @@
-# Home Assistant Energy Sankey Cards
+# Energy Sankey - Enhanced Battery Edition
 
-[![GitHub Release][releases-shield]][releases]
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![License][license-shield]](LICENSE.md)
+
+> **🔋 Enhanced Fork:** This is an enhanced version of the original [Energy Sankey Card](https://github.com/davet2001/energy-sankey) with improved battery visualization and larger icons for better visibility.
+
+## 🆕 Enhancements in This Fork
+
+- **📊 Larger Icons**: All icons increased from 24px to 48px (2x larger)
+- **🔋 Battery-Specific Icons**: Battery icons are even larger at 64px for better visibility
+- **🎨 Improved Layout**: Updated calculations to accommodate larger icons and labels
+
+---
 
 Energy Sankey is a collection of dashboard cards for homeassistant, dynamically displaying the flow of electrical energy and power.
 
