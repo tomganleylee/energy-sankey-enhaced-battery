@@ -5661,7 +5661,7 @@ let ElecSankey = class ElecSankey extends s$1 {
         const iconSize = _displayClass === "battery" ? BATTERY_ICON_SIZE_PX : ICON_SIZE_PX;
         return x `<div class="label">
       ${icon
-            ? b `<svg x="0" y="0" height=${iconSize}>
+            ? b `<svg x="0" y="0" width=${iconSize} height=${iconSize} viewBox="0 0 24 24">
               <path d=${icon} />
             </svg>
             <br />`

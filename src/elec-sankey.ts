@@ -943,7 +943,7 @@ export class ElecSankey extends LitElement {
 
     return html`<div class="label">
       ${icon
-        ? svg`<svg x="0" y="0" height=${iconSize}>
+        ? svg`<svg x="0" y="0" width=${iconSize} height=${iconSize} viewBox="0 0 24 24">
               <path d=${icon} />
             </svg>
             <br />`
