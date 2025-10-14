@@ -1,3 +1,3 @@
 node_modules
-dist/
 package.json
+# dist/ - Removed from gitignore so HACS can access the built files
