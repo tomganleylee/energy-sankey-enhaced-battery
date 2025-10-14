@@ -10,6 +10,11 @@ const autoGitPackageVersionPlugin = {
 
   buildStart() {
     try {
+      // Skip on Windows - version script uses bash
+      if (process.platform === "win32") {
+        console.log("Skipping auto-git-package-version on Windows");
+        return;
+      }
       execSync("scripts/update_package_json_version.sh", {
         stdio: "inherit",
         cwd: process.cwd(),

@@ -62,7 +62,8 @@ const BATTERY_BLEND_LENGTH = 30;
 const ARROW_HEAD_LENGTH = 10;
 const TEXT_PADDING = 8;
 const FONT_SIZE_PX = 16;
-const ICON_SIZE_PX = 24;
+const ICON_SIZE_PX = 48; // Increased from 24 for better visibility
+const BATTERY_ICON_SIZE_PX = 64; // Even larger for battery icons
 
 const GEN_ORIGIN_X = 150;
 
@@ -937,9 +938,12 @@ export class ElecSankey extends LitElement {
     const valueARounded = Math.round(valueA * 10) / 10;
     const valueBRounded = valueB ? Math.round(valueB * 10) / 10 : undefined;
 
+    // Use larger icon for battery displays
+    const iconSize = _displayClass === "battery" ? BATTERY_ICON_SIZE_PX : ICON_SIZE_PX;
+
     return html`<div class="label">
       ${icon
-        ? svg`<svg x="0" y="0" height=${ICON_SIZE_PX}>
+        ? svg`<svg x="0" y="0" height=${iconSize}>
               <path d=${icon} />
             </svg>
             <br />`
@@ -1679,7 +1683,7 @@ export class ElecSankey extends LitElement {
     }
 
     const batteryRoutes: { [id: string]: ElecRoutePair } = this.batteryRoutes;
-    const divHeight = ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 2;
+    const divHeight = BATTERY_ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 3; // Larger for batteries with extra info
 
     let xA: number = x21;
     let yA: number = y18;
