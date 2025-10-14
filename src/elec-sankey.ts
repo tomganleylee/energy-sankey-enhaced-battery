@@ -62,8 +62,8 @@ const BATTERY_BLEND_LENGTH = 30;
 const ARROW_HEAD_LENGTH = 10;
 const TEXT_PADDING = 8;
 const FONT_SIZE_PX = 16;
-const ICON_SIZE_PX = 48; // Increased from 24 for better visibility
-const BATTERY_ICON_SIZE_PX = 64; // Even larger for battery icons
+const ICON_SIZE_PX = 128; // MASSIVE for testing - was 48
+const BATTERY_ICON_SIZE_PX = 256; // HUGE for battery icons - was 64
 
 const GEN_ORIGIN_X = 150;
 
@@ -1169,7 +1169,7 @@ export class ElecSankey extends LitElement {
     const rateB = this._gridExport;
 
     const midY = (y10 + y13) / 2;
-    const divHeight = ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 2;
+    const divHeight = ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 4; // Larger for massive icons
     const hasGridExport =
       Object.keys(this.batteryRoutes).length > 0 ||
       Object.keys(this.generationInRoutes).length > 0;
@@ -1683,7 +1683,7 @@ export class ElecSankey extends LitElement {
     }
 
     const batteryRoutes: { [id: string]: ElecRoutePair } = this.batteryRoutes;
-    const divHeight = BATTERY_ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 3; // Larger for batteries with extra info
+    const divHeight = BATTERY_ICON_SIZE_PX + TEXT_PADDING + FONT_SIZE_PX * 6; // HUGE for massive battery icons
 
     let xA: number = x21;
     let yA: number = y18;
