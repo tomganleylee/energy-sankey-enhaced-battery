@@ -1,17 +1,17 @@
 {
-  "name": "energy-sankey-cards",
-  "version": "0.0.0",
-  "description": "Home Assistant Energy Sankey Cards",
+  "name": "energy-sankey-battery-enhanced",
+  "version": "1.0.0",
+  "description": "Home Assistant Energy Sankey Cards - Enhanced Battery Edition",
   "main": "energy-sankey.js",
   "scripts": {
     "start": "rollup -c --watch --bundleConfigAsCjs",
     "build": "rollup -c --bundleConfigAsCjs",
     "format": "prettier --write ."
   },
-  "author": "Dave Thompson",
+  "author": "tomganleylee (Enhanced by Claude Code)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davet2001/homeassistant-energy-sankey-card"
+    "url": "https://github.com/tomganleylee/energy-sankey-enhaced-battery"
   },
   "dependencies": {
     "@material/mwc-icon-button": "^0.27.0",

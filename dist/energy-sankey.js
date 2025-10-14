@@ -1,6 +1,6 @@
-var version = "0.0.0";
+var version = "1.0.0";
 var repository = {
-	url: "https://github.com/davet2001/homeassistant-energy-sankey-card"
+	url: "https://github.com/tomganleylee/energy-sankey-enhaced-battery"
 };
 
 /******************************************************************************
